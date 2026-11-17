@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aegis</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Aegis</h1>
+    <span id="status-pill" class="pill pill-unknown">checking…</span>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Status</h2>
+      <dl id="status">
+        <dt>Backend</dt><dd id="s-backend">—</dd>
+        <dt>Model</dt><dd id="s-model">—</dd>
+        <dt>Database</dt><dd id="s-db">—</dd>
+        <dt>Version</dt><dd id="s-version">—</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Ask Aegis</h2>
+      <p class="muted">Chat connects in Milestone 2 (local model). For now this is a
+        placeholder so the shell is complete.</p>
+      <form id="chat-form">
+        <input id="chat-input" type="text" placeholder="Describe an objective…" disabled>
+        <button type="submit" disabled>Send</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Tasks</h2>
+      <p class="muted">Task center arrives in Milestone 3.</p>
+      <ul id="task-list"><li class="muted">No tasks yet.</li></ul>
+    </section>
+  </main>
+
+  <footer>
+    <span class="muted">Local only · 127.0.0.1 · nothing leaves your Mac</span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

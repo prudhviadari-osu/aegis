@@ -1,0 +1,17 @@
+# Virtualenv
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Local runtime data — never commit (DB, browser profiles, logs, secrets, docs)
+data/
+*.db
+*.db-wal
+*.db-shm
+.env
+google_creds.json

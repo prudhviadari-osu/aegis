@@ -1,0 +1,28 @@
+"""Application configuration. Local-first; override via environment variables.
+
+Nothing here points at a paid service or the public internet by default.
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# Project root = two levels up from this file's package (backend/app -> repo root).
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = Path(os.environ.get("AEGIS_DATA_DIR", REPO_ROOT / "data"))
+DB_PATH = DATA_DIR / "database" / "aegis.db"
+
+# Dashboard / API bind address — localhost only (never public). See PRD §9.
+HOST = os.environ.get("AEGIS_HOST", "127.0.0.1")
+PORT = int(os.environ.get("AEGIS_PORT", "8777"))
+
+# Model backend (M2 wires these up). "ollama" default; "hermes" optional smart mode.
+MODEL_BACKEND = os.environ.get("AEGIS_MODEL_BACKEND", "ollama")
+OLLAMA_HOST = os.environ.get("AEGIS_OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("AEGIS_OLLAMA_MODEL", "qwen3:8b")
+
+
+def ensure_dirs() -> None:
+    """Create the local data directories if they don't exist."""
+    for sub in ("database", "browser", "documents", "logs", "checkpoints"):
+        (DATA_DIR / sub).mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,48 @@
+"""Aegis FastAPI application (Milestone 1: the shell).
+
+Run:  python -m backend.app.main        (from the repo root)
+or:   ./scripts/start.sh
+"""
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from . import config
+from .api import health
+from .database import init_db
+
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: ensure local data dirs + database exist. No cloud, no daemon.
+    config.ensure_dirs()
+    init_db()
+    yield
+    # Shutdown: nothing to flush yet (tasks/workers arrive in M3). Clean exit.
+
+
+app = FastAPI(title="Aegis", version="0.1.0", lifespan=lifespan)
+app.include_router(health.router)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+def dashboard() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
+
+
+def run() -> None:
+    import uvicorn
+    print(f"Aegis → http://{config.HOST}:{config.PORT}  (local only)")
+    uvicorn.run(app, host=config.HOST, port=config.PORT, log_level="info")
+
+
+if __name__ == "__main__":
+    run()
