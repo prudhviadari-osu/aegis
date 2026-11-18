@@ -78,6 +78,11 @@ ollama pull qwen3:8b
 Try the UI with no model: `AEGIS_MODEL_BACKEND=fake ./scripts/start.sh`.
 Use Hermes once it's set up: `AEGIS_MODEL_BACKEND=hermes ./scripts/start.sh`.
 
+**Setting up Hermes "smart mode"?** Follow [`docs/HERMES_SETUP.md`](docs/HERMES_SETUP.md)
+— a Mac-specific, step-by-step guide (Qwen3 8B at 64K with an 8-bit KV cache, tuned
+for 18 GB). The critical step most people miss: Hermes requires a 64K-context model,
+so you must create a `qwen3-8b-64k` Ollama variant first — the guide walks through it.
+
 ### Tuned for 8B @ 64K on an 18 GB Mac
 Aegis defaults make an 8B model punch above its weight and fit comfortably:
 - **8-bit KV cache** (`AEGIS_KV_CACHE=q8_0`) — roughly halves context memory, so
