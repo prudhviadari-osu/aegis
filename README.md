@@ -72,6 +72,18 @@ Aegis defaults make an 8B model punch above its weight and fit comfortably:
 - Set `AEGIS_RAM_GB` to your Mac's memory and the compatibility check tells you,
   before you run, whether your chosen model + context actually fits.
 
+### Runs cool and quiet (not fast)
+Aegis is tuned to keep your Mac cool rather than maximize speed — right for a
+background assistant that's on a lot:
+- **One inference at a time** — never two model calls at once (parallel inference is
+  what pegs the chip and spins the fans). Enforced by a lock.
+- **Gentle pacing** (`AEGIS_INTENSITY=gentle`) — a short rest between queued
+  background tasks so work happens in relaxed bursts, not a sustained grind.
+- **Per-task temperature** — low (0.2) for analysis/scoring (steadier *and* a touch
+  cooler), higher for drafting prose.
+- Deliberately skipped the speed tricks that generate heat (speculative decoding,
+  running the model many times per answer).
+
 ## What's next (per PRD §10)
 - **M3** — tasks, queue, worker, checkpoints, the approval gate.
 - **M4** — first skill: integrate the `jobify` job finder.

@@ -36,6 +36,22 @@ KV_CACHE_TYPE = os.environ.get("AEGIS_KV_CACHE", "q8_0")
 # tasks (big accuracy win for small models). Qwen3 supports this natively.
 THINKING_MODE = os.environ.get("AEGIS_THINKING", "true").lower() == "true"
 
+# --- Gentle execution: prioritize a cool, quiet Mac over speed ---
+# "gentle" (default): one model call at a time, pause between queued tasks so the
+#   chip runs in relaxed bursts instead of a sustained grind (fans stay quiet).
+# "normal": no artificial pacing.
+EXECUTION_INTENSITY = os.environ.get("AEGIS_INTENSITY", "gentle")
+# Seconds to rest between queued background tasks when intensity is "gentle".
+GENTLE_REST_SECONDS = float(os.environ.get("AEGIS_GENTLE_REST", "3.0"))
+# Hard rule regardless of intensity: never run two model inferences at once
+# (keeps the chip from maxing out — the main driver of heat).
+MAX_CONCURRENT_INFERENCE = 1
+
+# Per-task sampling temperatures (lower = steadier/more stable, also a bit cooler).
+TEMP_ANALYTICAL = float(os.environ.get("AEGIS_TEMP_ANALYTICAL", "0.2"))  # scoring, logic, JSON
+TEMP_CONVERSATIONAL = float(os.environ.get("AEGIS_TEMP_CHAT", "0.6"))     # chat
+TEMP_CREATIVE = float(os.environ.get("AEGIS_TEMP_CREATIVE", "0.8"))       # drafting prose
+
 # The assistant's standing instructions (the "system" message).
 SYSTEM_PROMPT = (
     "You are Aegis, a local-first personal assistant for Prudhvi, a pre-med "

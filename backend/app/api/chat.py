@@ -12,6 +12,7 @@ from .. import config
 from ..models import get_adapter
 from ..models.base import ModelError
 from ..models.compat import check
+from ..models.prompting import inference_lock, temperature_for
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ router = APIRouter()
 class ChatIn(BaseModel):
     message: str
     history: list[dict] = []     # prior [{role, content}] turns (optional)
+    kind: str = "conversational"  # "analytical" | "conversational" | "creative"
 
 
 @router.get("/api/model")
@@ -58,8 +60,11 @@ def chat(body: ChatIn) -> dict:
     messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
     messages += [m for m in body.history if m.get("role") in ("user", "assistant")]
     messages.append({"role": "user", "content": body.message})
+    temperature = temperature_for(body.kind)
     try:
-        reply = adapter.chat(messages, temperature=0.7)
+        # The lock guarantees only one inference runs at a time (thermal safeguard).
+        with inference_lock():
+            reply = adapter.chat(messages, temperature=temperature)
         return {"ok": True, "reply": reply, "error": None}
     except ModelError as exc:
         return {"ok": False, "reply": "", "error": str(exc)}
