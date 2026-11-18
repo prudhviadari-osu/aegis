@@ -13,8 +13,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import chat, health
+from .api import chat, health, tasks
 from .database import init_db
+from .tasks.worker import worker, requeue_interrupted
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -24,13 +25,20 @@ async def lifespan(app: FastAPI):
     # Startup: ensure local data dirs + database exist. No cloud, no daemon.
     config.ensure_dirs()
     init_db()
+    # Recover any task left 'running' by a previous shutdown, then start the worker.
+    recovered = requeue_interrupted()
+    if recovered:
+        print(f"Recovered {recovered} interrupted task(s) — re-queued.")
+    worker.start()
     yield
-    # Shutdown: nothing to flush yet (tasks/workers arrive in M3). Clean exit.
+    # Shutdown: stop the worker cleanly (finishes current task, saves state).
+    worker.stop()
 
 
 app = FastAPI(title="Aegis", version="0.1.0", lifespan=lifespan)
 app.include_router(health.router)
 app.include_router(chat.router)
+app.include_router(tasks.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

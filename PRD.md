@@ -213,13 +213,20 @@ Each milestone ends with a **working app.**
 - **M3 — Tasks + approvals.** Task lifecycle, queue, worker, checkpoints, the
   Approval gate. *Done when:* you submit an objective, it runs as a task, interrupting
   it keeps progress, Execute-level actions block on approval.
-- **M4 — First skill = jobify.** Integrate the job finder as a callable skill.
+- **M4 — Self-governing resource safety (REDEFINED per user).** Aegis monitors
+  CPU/memory/thermal pressure and voluntarily backs off *before* it would make the
+  Mac hot or sluggish; the worker asks the governor "safe to proceed?" before running
+  heavy work, and defers if not. **Honest scope:** software cannot physically damage a
+  Mac (macOS thermally throttles and manages memory itself), so the real promise is
+  "Aegis is never the reason your Mac struggles" — not literal hardware protection.
+  *Done when:* under simulated memory/thermal pressure, the worker pauses instead of
+  piling on work, and resumes when pressure clears.
+- **M5 — First skill = jobify.** Integrate the job finder as a callable skill.
   *Done when:* "find me medtech jobs" runs jobify and results land in the dashboard/sheet.
-- **M5 — Hermes smart mode.** Add Hermes as a second adapter backend + model-compat
-  gating for its 64K rule. *Done when:* you can toggle Hermes on and it works, and
-  Aegis still runs fine with it off.
-- **M6 — Memory + a 2nd skill (research).** Persistent context + one more skill.
-- **M7 — Polish.** Resource rules, approval UX, docs, tests.
+- **M6 — Hermes smart mode + memory.** Hermes as a second backend (64K-gated) +
+  persistent context. *Done when:* you can toggle Hermes on and it works, Aegis still
+  runs with it off, and it recalls prior context.
+- **M7 — Polish.** Approval UX, resource visualization, docs, tests.
 
 **First deliverable:** M1 — the shell. Build the foundation before any skill.
 

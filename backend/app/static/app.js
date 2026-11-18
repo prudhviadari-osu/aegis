@@ -70,5 +70,62 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
   }
 });
 
+// --- Tasks ---
+async function refreshTasks() {
+  try {
+    const tasks = await (await fetch("/api/tasks")).json();
+    const list = document.getElementById("task-list");
+    list.innerHTML = "";
+    if (!tasks.length) { list.innerHTML = '<li class="muted">No tasks yet.</li>'; return; }
+    for (const t of tasks) {
+      const li = document.createElement("li");
+      li.textContent = `#${t.id} [${t.status}] ${t.title}`;
+      list.appendChild(li);
+    }
+  } catch (e) { /* ignore */ }
+
+  try {
+    const aps = await (await fetch("/api/approvals")).json();
+    const list = document.getElementById("approval-list");
+    list.innerHTML = "";
+    if (!aps.length) { list.innerHTML = '<li class="muted">Nothing waiting.</li>'; return; }
+    for (const a of aps) {
+      const li = document.createElement("li");
+      li.textContent = `${a.action}: ${a.description} `;
+      const yes = document.createElement("button");
+      yes.textContent = "Approve";
+      yes.onclick = () => resolveApproval(a.id, true);
+      const no = document.createElement("button");
+      no.textContent = "Reject";
+      no.onclick = () => resolveApproval(a.id, false);
+      li.append(yes, no);
+      list.appendChild(li);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+async function resolveApproval(id, approved) {
+  await fetch(`/api/approvals/${id}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ approved }),
+  });
+  refreshTasks();
+}
+
+document.getElementById("task-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("task-title");
+  const title = input.value.trim();
+  if (!title) return;
+  await fetch("/api/tasks", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+  input.value = "";
+  refreshTasks();
+});
+
 refreshStatus();
+refreshTasks();
 setInterval(refreshStatus, 8000);
+setInterval(refreshTasks, 4000);

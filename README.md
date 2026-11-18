@@ -6,10 +6,11 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–2 — done.** M1: FastAPI shell + SQLite + plain-HTML dashboard.
-M2: swappable model layer (Qwen3/Ollama default, Hermes optional, fake for dry runs),
-a Mac memory-compatibility check, and a working chat box. No cloud, no paid APIs,
-runs entirely on your Mac.
+**Status: Milestones 1–3 — done.** M1: FastAPI shell + SQLite + plain-HTML dashboard.
+M2: swappable model layer (Qwen3/Ollama default, Hermes optional, fake), Mac
+memory-compatibility check, chat. M3: the task backbone — submit objectives that run
+as tracked, resumable tasks (one at a time, gentle pacing), with the propose → you
+approve → act gate. No cloud, no paid APIs, runs entirely on your Mac.
 
 ## Requirements
 - macOS (Apple Silicon) — though it runs anywhere with Python
@@ -84,11 +85,15 @@ background assistant that's on a lot:
 - Deliberately skipped the speed tricks that generate heat (speculative decoding,
   running the model many times per answer).
 
-## What's next (per PRD §10)
-- **M3** — tasks, queue, worker, checkpoints, the approval gate.
-- **M4** — first skill: integrate the `jobify` job finder.
-- **M5** — Hermes "smart mode" as an optional second backend.
-- **M6–M7** — memory, a second skill, polish.
+## What's next (per PRD §10, M4 redefined)
+- **M4** — **self-governing resource safety layer**: Aegis monitors CPU/memory/thermal
+  pressure and backs off before it would make your Mac hot or sluggish. The model
+  checks "is it safe to proceed?" before running heavy work. (Honest scope: software
+  can't physically damage a Mac — macOS prevents that — so this ensures *Aegis is
+  never the reason your Mac struggles*.)
+- **M5** — first real skill: integrate the `jobify` job finder.
+- **M6** — Hermes "smart mode" + persistent memory.
+- **M7** — polish.
 
 ## Layout
 ```
