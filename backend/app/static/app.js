@@ -141,7 +141,22 @@ document.getElementById("task-form").addEventListener("submit", async (e) => {
   refreshTasks();
 });
 
+async function loadSkills() {
+  try {
+    const skills = await (await fetch("/api/skills")).json();
+    const list = document.getElementById("skill-list");
+    list.innerHTML = "";
+    if (!skills.length) { list.innerHTML = '<li class="muted">No skills loaded.</li>'; return; }
+    for (const s of skills) {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${s.name}</strong> <span class="muted">[${s.permission}]</span> — ${s.description}`;
+      list.appendChild(li);
+    }
+  } catch (e) { /* ignore */ }
+}
+
 refreshStatus();
 refreshTasks();
+loadSkills();
 setInterval(refreshStatus, 8000);
 setInterval(refreshTasks, 4000);

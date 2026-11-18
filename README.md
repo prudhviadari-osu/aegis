@@ -6,11 +6,21 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–4 — done.** M1: shell. M2: model layer + Mac memory-fit check
+**Status: Milestones 1–5 — done.** M1: shell. M2: model layer + Mac memory-fit check
 + chat. M3: task backbone (resumable tasks, gentle pacing, approval gate). M3.5:
-battery/thermal/resource governor. **M4: self-checking — the model critiques and
-revises its own answers against job-fit criteria, and skips the extra passes when the
-device governor says it's not safe.** No cloud, no paid APIs, runs entirely on your Mac.
+battery/thermal/resource governor. M4: self-checking (model critiques + revises its
+own answers, governor-gated). **M5: first real skill — the `jobify` job finder,
+integrated as a callable Aegis skill.** No cloud, no paid APIs, runs entirely on your Mac.
+
+### Using the job_finder skill
+It wraps the standalone `jobify` repo (kept separate, imported — not copied). Point
+Aegis at your jobfinder checkout and create a task with `skill: "job_finder"`:
+```bash
+AEGIS_JOBIFY_PATH=/path/to/jobfinder ./scripts/start.sh
+```
+On the dashboard, the Skills card lists it; a job_finder task runs jobify through the
+full pipeline (worker → governor safety check → search → ranked summary). Full results
+go to jobify's own CSV/Sheet sink. It's read-only (OBSERVE) — it never applies.
 
 ## ⚠️ Protecting your battery (read this)
 Aegis is tuned to avoid the conditions that age a laptop battery — **sustained heat
@@ -105,8 +115,8 @@ background assistant that's on a lot:
   running the model many times per answer).
 
 ## What's next (per PRD §10)
-- **M5** — first real skill: integrate the `jobify` job finder.
-- **M6** — Hermes "smart mode" + persistent memory.
+- **M6** — Hermes "smart mode" + persistent memory. (Setup guide already in
+  [`docs/HERMES_SETUP.md`](docs/HERMES_SETUP.md).)
 - **M7** — polish.
 
 ## Layout

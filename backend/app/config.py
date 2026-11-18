@@ -61,6 +61,14 @@ MEMORY_CEILING_PERCENT = int(os.environ.get("AEGIS_MEM_CEILING", "90"))
 # How long to rest before re-checking when the governor says "defer" (seconds).
 GOVERNOR_BACKOFF_SECONDS = float(os.environ.get("AEGIS_GOVERNOR_BACKOFF", "30"))
 
+# --- Skills (M5+) ---
+# Path to the jobify ('jobfinder') repo so the job_finder skill can import it.
+# Defaults to a sibling directory next to the aegis repo. Override if elsewhere.
+JOBIFY_PATH = os.environ.get(
+    "AEGIS_JOBIFY_PATH",
+    str(Path(__file__).resolve().parents[3] / "jobfinder"),
+)
+
 # Per-task sampling temperatures (lower = steadier/more stable, also a bit cooler).
 TEMP_ANALYTICAL = float(os.environ.get("AEGIS_TEMP_ANALYTICAL", "0.2"))  # scoring, logic, JSON
 TEMP_CONVERSATIONAL = float(os.environ.get("AEGIS_TEMP_CHAT", "0.6"))     # chat

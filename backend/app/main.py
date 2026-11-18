@@ -13,8 +13,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import chat, health, resources, tasks
+from .api import chat, health, resources, skills, tasks
 from .database import init_db
+from .skills import load_builtin_skills
 from .tasks.worker import worker, requeue_interrupted
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -25,6 +26,8 @@ async def lifespan(app: FastAPI):
     # Startup: ensure local data dirs + database exist. No cloud, no daemon.
     config.ensure_dirs()
     init_db()
+    # Register built-in skills (job_finder, etc.) so the worker can run them.
+    load_builtin_skills()
     # Recover any task left 'running' by a previous shutdown, then start the worker.
     recovered = requeue_interrupted()
     if recovered:
@@ -40,6 +43,7 @@ app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(tasks.router)
 app.include_router(resources.router)
+app.include_router(skills.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
