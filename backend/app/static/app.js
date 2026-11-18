@@ -155,8 +155,43 @@ async function loadSkills() {
   } catch (e) { /* ignore */ }
 }
 
+async function refreshMemory() {
+  try {
+    const mems = await (await fetch("/api/memory")).json();
+    const list = document.getElementById("memory-list");
+    list.innerHTML = "";
+    if (!mems.length) { list.innerHTML = '<li class="muted">Nothing remembered yet.</li>'; return; }
+    for (const m of mems) {
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="muted">[${m.category}]</span> ${m.content} `;
+      const del = document.createElement("button");
+      del.textContent = "Forget";
+      del.onclick = async () => {
+        await fetch(`/api/memory/${m.id}`, { method: "DELETE" });
+        refreshMemory();
+      };
+      li.appendChild(del);
+      list.appendChild(li);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+document.getElementById("memory-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("memory-input");
+  const content = input.value.trim();
+  if (!content) return;
+  await fetch("/api/memory", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, category: "profile" }),
+  });
+  input.value = "";
+  refreshMemory();
+});
+
 refreshStatus();
 refreshTasks();
 loadSkills();
+refreshMemory();
 setInterval(refreshStatus, 8000);
 setInterval(refreshTasks, 4000);

@@ -85,8 +85,15 @@ def chat(body: ChatIn) -> dict:
                      f"Start Ollama and run `ollama pull {config.OLLAMA_MODEL}`, "
                      "or set AEGIS_MODEL_BACKEND=fake to try the UI without a model.",
         }
-    # Build the message list: system prompt + prior history + the new message.
-    messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
+    # Build the system prompt, augmented with relevant long-term memories so Aegis
+    # "remembers" the user across sessions (M6).
+    from ..memory import build_memory_context
+    system = config.SYSTEM_PROMPT
+    mem = build_memory_context(query=body.message)
+    if mem:
+        system = f"{system}\n\n{mem}"
+
+    messages = [{"role": "system", "content": system}]
     messages += [m for m in body.history if m.get("role") in ("user", "assistant")]
     messages.append({"role": "user", "content": body.message})
     temperature = temperature_for(body.kind)

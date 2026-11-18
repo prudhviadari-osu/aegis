@@ -6,11 +6,19 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–5 — done.** M1: shell. M2: model layer + Mac memory-fit check
+**Status: Milestones 1–6 — done.** M1: shell. M2: model layer + Mac memory-fit check
 + chat. M3: task backbone (resumable tasks, gentle pacing, approval gate). M3.5:
-battery/thermal/resource governor. M4: self-checking (model critiques + revises its
-own answers, governor-gated). **M5: first real skill — the `jobify` job finder,
-integrated as a callable Aegis skill.** No cloud, no paid APIs, runs entirely on your Mac.
+battery/thermal/resource governor. M4: self-checking (governor-gated). M5: first real
+skill — the `jobify` job finder. **M6: persistent memory — Aegis remembers you across
+sessions (stored locally, injected into chat), no Hermes or 64K strain needed.** No
+cloud, no paid APIs, runs entirely on your Mac.
+
+### Memory (M6)
+Aegis stores facts about you in SQLite and injects the relevant ones into each reply,
+so it remembers you between sessions. Add/view/forget memories on the dashboard's
+Memory card, or via `/api/memory`. **Honest limit:** recall is keyword-based (local,
+no vector DB) — it matches shared words, not meaning, so phrase memories with words
+you'd search for. Semantic recall (e.g. an embedding model) is a possible future upgrade.
 
 ### Using the job_finder skill
 It wraps the standalone `jobify` repo (kept separate, imported — not copied). Point
@@ -115,8 +123,9 @@ background assistant that's on a lot:
   running the model many times per answer).
 
 ## What's next (per PRD §10)
-- **M6** — Hermes "smart mode" + persistent memory. (Setup guide already in
-  [`docs/HERMES_SETUP.md`](docs/HERMES_SETUP.md).)
+- **Hermes "smart mode"** (optional) — the self-improving agent loop + built-in
+  skills, when you want autonomous multi-step work. Setup guide:
+  [`docs/HERMES_SETUP.md`](docs/HERMES_SETUP.md). (Heavier: forces 64K context.)
 - **M7** — polish.
 
 ## Layout
