@@ -28,4 +28,7 @@ def get_adapter(config):
     return OllamaBackend(
         host=getattr(config, "OLLAMA_HOST", "http://localhost:11434"),
         model=getattr(config, "OLLAMA_MODEL", "qwen3:8b"),
+        num_ctx=getattr(config, "TARGET_CONTEXT", 64000),
+        kv_cache_type=getattr(config, "KV_CACHE_TYPE", "q8_0"),
+        think=getattr(config, "THINKING_MODE", True),
     )

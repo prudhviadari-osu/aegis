@@ -15,10 +15,15 @@ from .base import ModelAdapter, ModelError, ModelInfo
 
 class OllamaBackend(ModelAdapter):
     def __init__(self, host: str = "http://localhost:11434",
-                 model: str = "qwen3:8b", timeout: int = 120):
+                 model: str = "qwen3:8b", timeout: int = 120,
+                 num_ctx: int = 64000, kv_cache_type: str = "q8_0",
+                 think: bool = True):
         self.host = host.rstrip("/")
         self.model = model
         self.timeout = timeout
+        self.num_ctx = num_ctx            # context window to request from Ollama
+        self.kv_cache_type = kv_cache_type  # q8_0 halves KV memory vs f16
+        self.think = think                # chain-of-thought for hard tasks
 
     def available(self) -> bool:
         try:
@@ -58,7 +63,13 @@ class OllamaBackend(ModelAdapter):
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": temperature},
+            "think": self.think,          # Qwen3 reasons before answering (accuracy win)
+            "options": {
+                "temperature": temperature,
+                "num_ctx": self.num_ctx,              # actually use the big context
+                "cache_type_k": self.kv_cache_type,   # 8-bit KV cache: ~half the memory
+                "cache_type_v": self.kv_cache_type,
+            },
         }
         try:
             r = requests.post(f"{self.host}/api/chat", json=payload, timeout=self.timeout)

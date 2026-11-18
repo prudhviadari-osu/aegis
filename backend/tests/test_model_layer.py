@@ -44,6 +44,18 @@ def test_compat_fits_and_tight():
     print("  compat check flags fit vs. tight correctly: OK")
 
 
+def test_compat_kv_cache_saves_memory():
+    info = ModelInfo("ollama", "qwen3:8b", available=True, context_window=131072,
+                     parameters="8.2B")
+    f16 = check(info, 18, 64000, kv_cache_type="f16")
+    q8 = check(info, 18, 64000, kv_cache_type="q8_0")
+    # 8-bit cache roughly halves KV memory, so total drops meaningfully.
+    assert q8.est_kv_gb < f16.est_kv_gb
+    assert q8.est_total_gb < f16.est_total_gb
+    assert f16.fits is False and q8.fits is True   # the key outcome for 18GB
+    print("  8-bit KV cache makes 8B@64K fit on 18GB: OK")
+
+
 def test_compat_hermes_warns_on_small_context():
     info = ModelInfo("ollama", "small", available=True, context_window=32768,
                      parameters="8B")

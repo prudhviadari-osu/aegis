@@ -45,12 +45,17 @@ def _params_to_billions(params: str) -> float:
     return val if m.group(2).upper() == "B" else val / 1000.0
 
 
+# KV cache memory multiplier by cache precision (relative to 16-bit default).
+KV_CACHE_MULTIPLIER = {"f16": 1.0, "q8_0": 0.5, "q4_0": 0.25}
+
+
 def check(info: ModelInfo, machine_ram_gb: int = 18,
-          target_context: int = 64_000) -> CompatReport:
+          target_context: int = 64_000, kv_cache_type: str = "f16") -> CompatReport:
     billions = _params_to_billions(info.parameters)
     weights = billions * WEIGHTS_GB_PER_B
-    # KV scales with both context length and model size (relative to 8B).
-    kv = (target_context / 1000.0) * KV_GB_PER_1K_TOKENS_8B * (billions / 8.0)
+    # KV scales with context length and model size, reduced by cache quantization.
+    kv_mult = KV_CACHE_MULTIPLIER.get(kv_cache_type, 1.0)
+    kv = (target_context / 1000.0) * KV_GB_PER_1K_TOKENS_8B * (billions / 8.0) * kv_mult
     total = weights + kv + SYSTEM_RESERVE_GB
     fits = total <= machine_ram_gb
 

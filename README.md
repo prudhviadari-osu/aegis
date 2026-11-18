@@ -63,6 +63,15 @@ ollama pull qwen3:8b
 Try the UI with no model: `AEGIS_MODEL_BACKEND=fake ./scripts/start.sh`.
 Use Hermes once it's set up: `AEGIS_MODEL_BACKEND=hermes ./scripts/start.sh`.
 
+### Tuned for 8B @ 64K on an 18 GB Mac
+Aegis defaults make an 8B model punch above its weight and fit comfortably:
+- **8-bit KV cache** (`AEGIS_KV_CACHE=q8_0`) — roughly halves context memory, so
+  8B @ 64K needs ~14 GB instead of ~18 GB. Big headroom win, no noticeable quality loss.
+- **Thinking mode** (`AEGIS_THINKING=true`) — the model reasons step-by-step before
+  answering, which sharply improves a small model's accuracy on hard tasks.
+- Set `AEGIS_RAM_GB` to your Mac's memory and the compatibility check tells you,
+  before you run, whether your chosen model + context actually fits.
+
 ## What's next (per PRD §10)
 - **M3** — tasks, queue, worker, checkpoints, the approval gate.
 - **M4** — first skill: integrate the `jobify` job finder.

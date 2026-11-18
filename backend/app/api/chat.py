@@ -26,7 +26,8 @@ def model_status() -> dict:
     adapter = get_adapter(config)
     info = adapter.info()
     report = check(info, machine_ram_gb=config.MACHINE_RAM_GB,
-                   target_context=config.TARGET_CONTEXT)
+                   target_context=config.TARGET_CONTEXT,
+                   kv_cache_type=getattr(config, "KV_CACHE_TYPE", "f16"))
     return {
         "backend": info.backend,
         "model": info.model,

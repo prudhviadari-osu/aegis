@@ -28,6 +28,14 @@ MACHINE_RAM_GB = int(os.environ.get("AEGIS_RAM_GB", "18"))
 # Context window Aegis targets (Hermes needs >= 64000).
 TARGET_CONTEXT = int(os.environ.get("AEGIS_TARGET_CONTEXT", "64000"))
 
+# --- Tuning that makes an 8B model punch above its weight on 18GB ---
+# 8-bit KV cache roughly halves context memory, so 8B @ 64K fits comfortably.
+# Options: "f16" (default, safest), "q8_0" (recommended here), "q4_0" (smallest).
+KV_CACHE_TYPE = os.environ.get("AEGIS_KV_CACHE", "q8_0")
+# Thinking / chain-of-thought mode: let the model reason before answering on hard
+# tasks (big accuracy win for small models). Qwen3 supports this natively.
+THINKING_MODE = os.environ.get("AEGIS_THINKING", "true").lower() == "true"
+
 # The assistant's standing instructions (the "system" message).
 SYSTEM_PROMPT = (
     "You are Aegis, a local-first personal assistant for Prudhvi, a pre-med "
