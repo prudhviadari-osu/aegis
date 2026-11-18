@@ -7,12 +7,41 @@ Three things every backend must provide:
 """
 from __future__ import annotations
 
+import json
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 
 class ModelError(Exception):
     """Raised when a backend is unreachable or returns an unusable response."""
+
+
+_JSON_BLOCK = re.compile(r"\{.*\}|\[.*\]", re.DOTALL)
+
+
+def extract_json(text: str) -> dict | list:
+    """Pull the first JSON object/array out of a model response.
+
+    Small local models often wrap JSON in prose, ```json fences, or a <think>
+    reasoning preamble. We strip those and parse the first balanced block.
+    Raises ModelError if nothing parseable is found.
+    """
+    if not text:
+        raise ModelError("empty model response")
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    text = text.replace("```json", "").replace("```", "")
+    try:
+        return json.loads(text.strip())
+    except ValueError:
+        pass
+    m = _JSON_BLOCK.search(text)
+    if not m:
+        raise ModelError(f"no JSON found in model output: {text[:200]!r}")
+    try:
+        return json.loads(m.group(0))
+    except ValueError as exc:
+        raise ModelError(f"invalid JSON in model output: {exc}") from exc
 
 
 @dataclass

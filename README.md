@@ -6,10 +6,11 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–3.5 — done.** M1: shell. M2: swappable model layer + Mac
-memory-fit check + chat. M3: task backbone (resumable tasks, gentle pacing, approval
-gate). **M3.5: a battery/thermal/resource governor that protects your hardware.** No
-cloud, no paid APIs, runs entirely on your Mac.
+**Status: Milestones 1–4 — done.** M1: shell. M2: model layer + Mac memory-fit check
++ chat. M3: task backbone (resumable tasks, gentle pacing, approval gate). M3.5:
+battery/thermal/resource governor. **M4: self-checking — the model critiques and
+revises its own answers against job-fit criteria, and skips the extra passes when the
+device governor says it's not safe.** No cloud, no paid APIs, runs entirely on your Mac.
 
 ## ⚠️ Protecting your battery (read this)
 Aegis is tuned to avoid the conditions that age a laptop battery — **sustained heat
@@ -99,8 +100,6 @@ background assistant that's on a lot:
   running the model many times per answer).
 
 ## What's next (per PRD §10)
-- **M4** — self-checking optimization: the model verifies/revises its own output and
-  consults the M3.5 governor's "safe to proceed?" gate before acting.
 - **M5** — first real skill: integrate the `jobify` job finder.
 - **M6** — Hermes "smart mode" + persistent memory.
 - **M7** — polish.

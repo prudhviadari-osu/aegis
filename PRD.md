@@ -239,8 +239,10 @@ Each milestone ends with a **working app.**
 
 **First deliverable:** M1 — the shell. Build the foundation before any skill.
 
-**Progress:** M1 (shell) and M2 (model layer: Qwen3/Ollama default, Hermes optional,
-fake backend, compatibility check, chat endpoint + dashboard) are **built and tested.**
+**Progress:** M1 (shell), M2 (model layer + compat check + chat), M3 (task backbone
++ approval gate), M3.5 (battery/thermal governor), and M4 (self-checking: model
+critiques + revises its own answers against the user's job-fit criteria, governor-
+gated) are **built and tested** (40 tests passing).
 
 ---
 

@@ -45,6 +45,35 @@ def model_status() -> dict:
     }
 
 
+class AnswerIn(BaseModel):
+    question: str
+    kind: str = "creative"   # answers (e.g. "why this company") are usually prose
+
+
+@router.post("/api/answer")
+def answer_checked(body: AnswerIn) -> dict:
+    """Draft an answer, then self-check + revise it once (Milestone 4).
+    Skips the extra passes if the device governor says conditions are unsafe."""
+    from ..models.selfcheck import answer_with_selfcheck
+    from ..models.prompting import inference_lock, temperature_for
+    from ..resources import Governor
+
+    adapter = get_adapter(config)
+    if not adapter.available():
+        return {"ok": False, "error": f"model backend '{config.MODEL_BACKEND}' not reachable"}
+
+    # First draft.
+    with inference_lock():
+        draft = adapter.chat(
+            [{"role": "system", "content": config.SYSTEM_PROMPT},
+             {"role": "user", "content": body.question}],
+            temperature=temperature_for(body.kind))
+    # Self-check loop (governor-gated so it won't burn compute on a hot Mac).
+    result = answer_with_selfcheck(adapter, body.question, draft, governor=Governor(config))
+    result["ok"] = True
+    return result
+
+
 @router.post("/api/chat")
 def chat(body: ChatIn) -> dict:
     adapter = get_adapter(config)
