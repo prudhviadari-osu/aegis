@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import health
+from .api import chat, health
 from .database import init_db
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -30,6 +30,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Aegis", version="0.1.0", lifespan=lifespan)
 app.include_router(health.router)
+app.include_router(chat.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

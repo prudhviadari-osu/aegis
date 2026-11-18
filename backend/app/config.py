@@ -16,10 +16,24 @@ DB_PATH = DATA_DIR / "database" / "aegis.db"
 HOST = os.environ.get("AEGIS_HOST", "127.0.0.1")
 PORT = int(os.environ.get("AEGIS_PORT", "8777"))
 
-# Model backend (M2 wires these up). "ollama" default; "hermes" optional smart mode.
+# Model backend. "ollama" default; "hermes" optional smart mode; "fake" for a
+# no-model dry run (useful before you install Ollama).
 MODEL_BACKEND = os.environ.get("AEGIS_MODEL_BACKEND", "ollama")
 OLLAMA_HOST = os.environ.get("AEGIS_OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("AEGIS_OLLAMA_MODEL", "qwen3:8b")
+HERMES_HOST = os.environ.get("AEGIS_HERMES_HOST", "http://localhost:8080")
+
+# Your Mac's unified memory (GB) — used by the model compatibility check.
+MACHINE_RAM_GB = int(os.environ.get("AEGIS_RAM_GB", "18"))
+# Context window Aegis targets (Hermes needs >= 64000).
+TARGET_CONTEXT = int(os.environ.get("AEGIS_TARGET_CONTEXT", "64000"))
+
+# The assistant's standing instructions (the "system" message).
+SYSTEM_PROMPT = (
+    "You are Aegis, a local-first personal assistant for Prudhvi, a pre-med "
+    "Computer Science student. Be concise and practical. You never take "
+    "consequential actions without explicit approval."
+)
 
 
 def ensure_dirs() -> None:

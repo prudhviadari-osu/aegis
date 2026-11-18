@@ -223,6 +223,9 @@ Each milestone ends with a **working app.**
 
 **First deliverable:** M1 — the shell. Build the foundation before any skill.
 
+**Progress:** M1 (shell) and M2 (model layer: Qwen3/Ollama default, Hermes optional,
+fake backend, compatibility check, chat endpoint + dashboard) are **built and tested.**
+
 ---
 
 ## 11. Non-goals for MVP (your §11, kept)

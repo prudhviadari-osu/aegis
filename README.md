@@ -6,9 +6,10 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestone 1 (the shell) — done.** FastAPI backend, SQLite, a plain-HTML
-dashboard, start/stop scripts, health check. No cloud, no paid APIs, runs entirely
-on your Mac.
+**Status: Milestones 1–2 — done.** M1: FastAPI shell + SQLite + plain-HTML dashboard.
+M2: swappable model layer (Qwen3/Ollama default, Hermes optional, fake for dry runs),
+a Mac memory-compatibility check, and a working chat box. No cloud, no paid APIs,
+runs entirely on your Mac.
 
 ## Requirements
 - macOS (Apple Silicon) — though it runs anywhere with Python
@@ -42,15 +43,27 @@ python -m backend.app.main
 Covers DB init, schema, WAL/foreign-key pragmas, cascade deletes, the health
 endpoint, and the dashboard — all without a model or network.
 
-## What works now (M1)
+## What works now (M1 + M2)
 - Local web dashboard at `127.0.0.1:8777` (plain HTML + CSS, no build step).
-- SQLite database that self-initializes with the full schema (tasks, events,
-  approvals, memory, skills, settings).
-- `/api/health` endpoint the dashboard polls.
-- Clean startup/shutdown; all data stored locally under `data/` (gitignored).
+- SQLite database that self-initializes with the full schema.
+- `/api/health`, `/api/model`, `/api/chat` endpoints.
+- **Chat with a local model** from the dashboard.
+- **Swappable model backend** (`AEGIS_MODEL_BACKEND`): `ollama` (default), `hermes`,
+  or `fake` (try the UI with no model installed).
+- **Memory-compatibility check** — estimates whether your model fits your Mac's RAM
+  at the target context, and warns if a model is below Hermes' 64K requirement.
+- Clean startup/shutdown; all data local under `data/` (gitignored).
+
+### Using it with a real model
+```bash
+# install Ollama from https://ollama.com/download, then:
+ollama pull qwen3:8b
+./scripts/start.sh            # open http://127.0.0.1:8777 and chat
+```
+Try the UI with no model: `AEGIS_MODEL_BACKEND=fake ./scripts/start.sh`.
+Use Hermes once it's set up: `AEGIS_MODEL_BACKEND=hermes ./scripts/start.sh`.
 
 ## What's next (per PRD §10)
-- **M2** — local model via Ollama (Qwen3 8B) behind a swappable adapter + chat.
 - **M3** — tasks, queue, worker, checkpoints, the approval gate.
 - **M4** — first skill: integrate the `jobify` job finder.
 - **M5** — Hermes "smart mode" as an optional second backend.

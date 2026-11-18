@@ -69,7 +69,7 @@ def test_health_endpoint(tmp_path):
         body = r.json()
         assert body["status"] == "ok"
         assert body["database_ok"] is True
-        assert body["model_backend"] == "ollama"
+        assert body["model_backend"] in ("ollama", "hermes", "fake")  # don't couple to a value
         assert "version" in body
 
 

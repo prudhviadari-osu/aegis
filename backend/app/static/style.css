@@ -71,3 +71,10 @@ button {
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 ul { margin: 0; padding-left: 1.1rem; }
 footer { text-align: center; padding: 1.5rem; }
+
+.chat-log { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;
+  max-height: 340px; overflow-y: auto; }
+.bubble { padding: 0.5rem 0.75rem; border-radius: 10px; max-width: 85%; white-space: pre-wrap; }
+.bubble-user { align-self: flex-end; background: var(--accent); color: #fff; }
+.bubble-assistant { align-self: flex-start; background: #0f1115; border: 1px solid var(--line); }
+.bubble-error { border-color: var(--bad); color: var(--bad); }

@@ -18,18 +18,20 @@
       <dl id="status">
         <dt>Backend</dt><dd id="s-backend">—</dd>
         <dt>Model</dt><dd id="s-model">—</dd>
+        <dt>Model ready</dt><dd id="s-model-ready">—</dd>
+        <dt>Fits your Mac</dt><dd id="s-fits">—</dd>
         <dt>Database</dt><dd id="s-db">—</dd>
         <dt>Version</dt><dd id="s-version">—</dd>
       </dl>
+      <p id="model-note" class="muted"></p>
     </section>
 
     <section class="card">
       <h2>Ask Aegis</h2>
-      <p class="muted">Chat connects in Milestone 2 (local model). For now this is a
-        placeholder so the shell is complete.</p>
+      <div id="chat-log" class="chat-log"></div>
       <form id="chat-form">
-        <input id="chat-input" type="text" placeholder="Describe an objective…" disabled>
-        <button type="submit" disabled>Send</button>
+        <input id="chat-input" type="text" placeholder="Ask something…" autocomplete="off">
+        <button type="submit">Send</button>
       </form>
     </section>
 
