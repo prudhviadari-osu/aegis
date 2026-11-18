@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import chat, health, tasks
+from .api import chat, health, resources, tasks
 from .database import init_db
 from .tasks.worker import worker, requeue_interrupted
 
@@ -39,6 +39,7 @@ app = FastAPI(title="Aegis", version="0.1.0", lifespan=lifespan)
 app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(tasks.router)
+app.include_router(resources.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

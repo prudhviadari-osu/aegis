@@ -14,6 +14,22 @@ async function refreshStatus() {
     pill.className = "pill pill-bad";
   }
 
+  // Device safety (battery / thermal / memory governor).
+  try {
+    const r = await (await fetch("/api/resources")).json();
+    document.getElementById("r-battery").textContent =
+      r.battery_percent != null ? `${r.battery_percent}%` : "n/a (desktop?)";
+    document.getElementById("r-power").textContent =
+      r.on_ac_power == null ? "—" : (r.on_ac_power ? "plugged in" : "on battery");
+    document.getElementById("r-thermal").textContent = r.thermal_pressure ?? "—";
+    document.getElementById("r-mem").textContent =
+      r.memory_percent != null ? `${r.memory_percent}% used` : "—";
+    const safe = document.getElementById("r-safe");
+    safe.textContent = r.safe_to_proceed ? "yes" : "holding off";
+    safe.style.color = r.safe_to_proceed ? "var(--ok)" : "var(--bad)";
+    document.getElementById("r-reason").textContent = r.governor_reason ?? "";
+  } catch (e) { /* ignore */ }
+
   // Model status + compatibility check.
   try {
     const m = await (await fetch("/api/model")).json();

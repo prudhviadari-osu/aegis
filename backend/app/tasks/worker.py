@@ -84,13 +84,28 @@ class Worker:
             repo.transition(tid, "failed", str(exc))
 
     def _loop(self) -> None:
+        from ..resources import Governor
+        governor = Governor(config)
         rest = config.GENTLE_REST_SECONDS if config.EXECUTION_INTENSITY == "gentle" else 0.0
+
         while not self._stop.is_set():
             task = self._next_queued()
             if task is None:
                 # Nothing to do — idle poll (cheap, keeps the chip cool).
                 self._stop.wait(timeout=1.0)
                 continue
+
+            # M3.5 SAFETY GATE: only run if the governor says conditions are safe.
+            decision = governor.evaluate()
+            if not decision.proceed:
+                # Record why we're holding off (visible in the task's event log),
+                # then rest and re-check — we do NOT run the task.
+                repo.transition_safe(task["id"], "paused", f"governor: {decision.reason}")
+                self._stop.wait(timeout=config.GOVERNOR_BACKOFF_SECONDS)
+                # Re-queue the paused task so it's eligible again after cooldown.
+                repo.transition_safe(task["id"], "queued", "governor: re-check after cooldown")
+                continue
+
             self._run_one(task)
             # Gentle pacing: rest between tasks so work happens in relaxed bursts.
             if rest:

@@ -47,6 +47,20 @@ GENTLE_REST_SECONDS = float(os.environ.get("AEGIS_GENTLE_REST", "3.0"))
 # (keeps the chip from maxing out — the main driver of heat).
 MAX_CONCURRENT_INFERENCE = 1
 
+# --- Battery / thermal / resource governor (M3.5): protect the hardware ---
+# The user saw real battery wear from sustained training load. These rules make
+# Aegis back off before adding to the heat/high-charge conditions that age cells.
+# Don't run heavy work on battery below this % (plug in instead).
+BATTERY_FLOOR_PERCENT = int(os.environ.get("AEGIS_BATTERY_FLOOR", "40"))
+# Treat this % and up as "near full" for the plugged-in-and-hot rule.
+BATTERY_HIGH_PERCENT = int(os.environ.get("AEGIS_BATTERY_HIGH", "95"))
+# Avoid sustained load while plugged in, near full, and warm (battery stress).
+AVOID_HOT_FULL_CHARGE = os.environ.get("AEGIS_AVOID_HOT_FULL", "true").lower() == "true"
+# Defer if RAM usage is at/above this %.
+MEMORY_CEILING_PERCENT = int(os.environ.get("AEGIS_MEM_CEILING", "90"))
+# How long to rest before re-checking when the governor says "defer" (seconds).
+GOVERNOR_BACKOFF_SECONDS = float(os.environ.get("AEGIS_GOVERNOR_BACKOFF", "30"))
+
 # Per-task sampling temperatures (lower = steadier/more stable, also a bit cooler).
 TEMP_ANALYTICAL = float(os.environ.get("AEGIS_TEMP_ANALYTICAL", "0.2"))  # scoring, logic, JSON
 TEMP_CONVERSATIONAL = float(os.environ.get("AEGIS_TEMP_CHAT", "0.6"))     # chat

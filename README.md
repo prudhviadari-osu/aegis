@@ -6,11 +6,24 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–3 — done.** M1: FastAPI shell + SQLite + plain-HTML dashboard.
-M2: swappable model layer (Qwen3/Ollama default, Hermes optional, fake), Mac
-memory-compatibility check, chat. M3: the task backbone — submit objectives that run
-as tracked, resumable tasks (one at a time, gentle pacing), with the propose → you
-approve → act gate. No cloud, no paid APIs, runs entirely on your Mac.
+**Status: Milestones 1–3.5 — done.** M1: shell. M2: swappable model layer + Mac
+memory-fit check + chat. M3: task backbone (resumable tasks, gentle pacing, approval
+gate). **M3.5: a battery/thermal/resource governor that protects your hardware.** No
+cloud, no paid APIs, runs entirely on your Mac.
+
+## ⚠️ Protecting your battery (read this)
+Aegis is tuned to avoid the conditions that age a laptop battery — **sustained heat
+and holding a hot battery at full charge** (the main culprits, worse than one-off hard
+use). Its governor automatically defers heavy work when your Mac is warm, on low
+battery, or near-full-and-warm while plugged in. It trades speed for gentleness on
+purpose.
+
+**But software can't control charging — that's macOS's job.** For real battery
+protection, also turn on, in **System Settings → Battery**:
+- **Optimized Battery Charging** (or, on supported Macs, the **80% charge limit**).
+
+Aegis limiting its load + macOS limiting the charge = the two halves of sparing your
+battery. Aegis does the first; please enable the second.
 
 ## Requirements
 - macOS (Apple Silicon) — though it runs anywhere with Python
@@ -85,12 +98,9 @@ background assistant that's on a lot:
 - Deliberately skipped the speed tricks that generate heat (speculative decoding,
   running the model many times per answer).
 
-## What's next (per PRD §10, M4 redefined)
-- **M4** — **self-governing resource safety layer**: Aegis monitors CPU/memory/thermal
-  pressure and backs off before it would make your Mac hot or sluggish. The model
-  checks "is it safe to proceed?" before running heavy work. (Honest scope: software
-  can't physically damage a Mac — macOS prevents that — so this ensures *Aegis is
-  never the reason your Mac struggles*.)
+## What's next (per PRD §10)
+- **M4** — self-checking optimization: the model verifies/revises its own output and
+  consults the M3.5 governor's "safe to proceed?" gate before acting.
 - **M5** — first real skill: integrate the `jobify` job finder.
 - **M6** — Hermes "smart mode" + persistent memory.
 - **M7** — polish.

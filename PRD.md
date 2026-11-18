@@ -213,14 +213,23 @@ Each milestone ends with a **working app.**
 - **M3 — Tasks + approvals.** Task lifecycle, queue, worker, checkpoints, the
   Approval gate. *Done when:* you submit an objective, it runs as a task, interrupting
   it keeps progress, Execute-level actions block on approval.
-- **M4 — Self-governing resource safety (REDEFINED per user).** Aegis monitors
-  CPU/memory/thermal pressure and voluntarily backs off *before* it would make the
-  Mac hot or sluggish; the worker asks the governor "safe to proceed?" before running
-  heavy work, and defers if not. **Honest scope:** software cannot physically damage a
-  Mac (macOS thermally throttles and manages memory itself), so the real promise is
-  "Aegis is never the reason your Mac struggles" — not literal hardware protection.
-  *Done when:* under simulated memory/thermal pressure, the worker pauses instead of
-  piling on work, and resumes when pressure clears.
+- **M3.5 — Battery/thermal/resource safety layer (NEW, user priority).** A
+  self-governor that protects the user's hardware investment. The user saw real
+  battery degradation (93% → 86%) from sustained training load, and the main culprit
+  is **sustained heat + high charge**, not one-off hard use. Aegis monitors battery
+  %, charging state, thermal pressure, and memory, and voluntarily backs off *before*
+  it adds to those conditions: pause heavy work when hot; throttle on battery power;
+  avoid holding the battery hot at ~100% while plugged in; enforce relaxed bursts with
+  long cooldown rests; cap daily heavy compute. **Honest scope:** software cannot
+  control charging or physically protect hardware (macOS does), so the promise is
+  "Aegis never contributes to the sustained-heat conditions that age the battery" —
+  paired with the user enabling macOS Optimized/Limited Charging. *Done when:* under
+  simulated hot/on-battery/high-charge conditions, the worker defers work and resumes
+  when conditions clear; the dashboard surfaces battery + thermal state.
+- **M4 — Self-checking optimization (ORIGINAL plan, kept).** The model verifies its
+  own work (self-critique/validation of outputs) and consults a "safe to proceed?"
+  gate before acting. Builds on M3.5's governor. *Done when:* the model can catch and
+  revise its own bad output, and won't act when the governor says conditions are unsafe.
 - **M5 — First skill = jobify.** Integrate the job finder as a callable skill.
   *Done when:* "find me medtech jobs" runs jobify and results land in the dashboard/sheet.
 - **M6 — Hermes smart mode + memory.** Hermes as a second backend (64K-gated) +

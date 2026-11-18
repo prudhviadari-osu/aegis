@@ -106,6 +106,16 @@ def transition(task_id: int, new_status: str, detail: str = "") -> dict:
         conn.close()
 
 
+def transition_safe(task_id: int, new_status: str, detail: str = "") -> dict | None:
+    """Like transition() but never raises on an illegal/terminal move — returns
+    None instead. Used by the worker's governor loop, where a task may have been
+    cancelled by the user between checks and we don't want to crash the worker."""
+    try:
+        return transition(task_id, new_status, detail)
+    except TransitionError:
+        return None
+
+
 def save_checkpoint(task_id: int, checkpoint: dict) -> None:
     """Persist resumable progress so an interrupted task can continue safely."""
     conn = connect()
