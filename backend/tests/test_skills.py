@@ -32,17 +32,27 @@ def test_register_skill_wires_worker():
 
 @pytest.fixture
 def fake_jobify(monkeypatch, tmp_path):
-    """Inject a fake 'finder' package so job_finder imports cleanly offline."""
-    # fake finder.run.gather + finder.config
+    """Inject a fake 'finder' package + temp DB so the job_finder handler runs
+    offline. The handler now stores+analyzes jobs, so it needs the DB and model."""
+    from backend.app import config, database
+    db = tmp_path / "t.db"
+    monkeypatch.setattr(config, "DB_PATH", db)
+    monkeypatch.setattr(config, "MODEL_BACKEND", "fake")
+    database.init_db(db)
+
     finder_pkg = types.ModuleType("finder")
     run_mod = types.ModuleType("finder.run")
     config_mod = types.ModuleType("finder.config")
     config_mod.KEYWORDS = ["biomedical", "clinical"]
 
     class FakeJob:
+        _n = 0
         def __init__(self, title, company, location, source="workday", status="new"):
             self.title, self.company, self.location = title, company, location
             self.source, self.status = source, status
+            self.description = "biomedical clinical research"
+            FakeJob._n += 1
+            self.job_key = f"workday:{FakeJob._n}"
 
     def fake_gather(keywords):
         return [
@@ -61,19 +71,21 @@ def fake_jobify(monkeypatch, tmp_path):
 
 def test_job_finder_handler_runs(fake_jobify):
     from backend.app.skills import job_finder
+    from backend.app.jobs import all_jobs
     checkpoints = []
     result = job_finder._handler(
         {"title": "find jobs", "description": "biomedical, imaging"},
         lambda cp: checkpoints.append(cp),
     )
-    # Uses the task description as keywords, summarizes results.
-    assert "Found 2 jobs" in result
-    assert "Clinical Research Assistant" in result
-    assert "ML Engineer" not in result or "within your location rules" in result
-    # Checkpoints recorded progress (searching -> gathered).
+    # Only the 'new'-status job is kept + stored (the filtered one is dropped).
+    stored = all_jobs()
+    assert len(stored) == 1
+    assert stored[0]["company"] == "HospitalX"
+    assert stored[0]["scored"] == 1              # analyzed by the fake model
+    assert "analyzed 1" in result
     steps = [c.get("step") for c in checkpoints]
-    assert "searching" in steps and "gathered" in steps
-    print("  job_finder handler runs + summarizes + checkpoints: OK")
+    assert "searching" in steps and "gathered" in steps and "scoring" in steps
+    print("  job_finder stores + analyzes kept jobs: OK")
 
 
 def test_job_finder_empty(fake_jobify, monkeypatch):
@@ -81,7 +93,7 @@ def test_job_finder_empty(fake_jobify, monkeypatch):
     monkeypatch.setattr(run_mod, "gather", lambda kw: [])
     from backend.app.skills import job_finder
     result = job_finder._handler({"title": "x", "description": ""}, lambda cp: None)
-    assert "No jobs found" in result
+    assert "none passed" in result or "Searched 0" in result
     print("  job_finder handles no-results gracefully: OK")
 
 

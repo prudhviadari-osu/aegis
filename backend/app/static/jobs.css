@@ -1,0 +1,40 @@
+nav { margin-right: auto; }
+nav a { color: var(--accent); text-decoration: none; }
+nav span { color: var(--text); }
+
+.jobs-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 1100px;
+}
+@media (max-width: 800px) { .jobs-layout { grid-template-columns: 1fr; } }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: #0f1115; }
+tbody tr.selected { background: #1d2433; }
+
+.ring-badge { font-size: 0.75rem; padding: 0.1rem 0.45rem; border-radius: 999px; border: 1px solid var(--line); }
+.ring-1, .ring-2 { color: var(--ok); border-color: var(--ok); }
+.ring-3 { color: #e0b341; border-color: #e0b341; }
+.ring-4 { color: var(--muted); }
+
+.status-applied { color: var(--ok); }
+.status-skipped { color: var(--muted); }
+.status-new { color: var(--accent); }
+
+.detail-section { margin: 0.9rem 0; }
+.detail-section h3 { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.35rem;
+  text-transform: uppercase; letter-spacing: 0.4px; }
+.have li { color: var(--ok); }
+.missing li { color: var(--bad); }
+.steps li { color: var(--text); }
+.draft-box { background: #0f1115; border: 1px solid var(--line); border-radius: 8px;
+  padding: 0.75rem; white-space: pre-wrap; font-size: 0.9rem; }
+.detail-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.btn-skip { background: #39404f; }
+.fit-bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; width: 60px; }
+.fit-bar > span { display: block; height: 100%; background: var(--ok); }

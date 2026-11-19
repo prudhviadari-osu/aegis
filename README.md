@@ -6,7 +6,7 @@ a set of **skills** (the job finder is the first), persistent memory, and a
 
 Full spec: [`PRD.md`](PRD.md).
 
-**Status: Milestones 1–6 — done.** M1: shell. M2: model layer + Mac memory-fit check
+**Status: Milestones 1–6 + the Jobs review page (M5.5) — done.** M1: shell. M2: model layer + Mac memory-fit check
 + chat. M3: task backbone (resumable tasks, gentle pacing, approval gate). M3.5:
 battery/thermal/resource governor. M4: self-checking (governor-gated). M5: first real
 skill — the `jobify` job finder. **M6: persistent memory — Aegis remembers you across
@@ -20,15 +20,23 @@ Memory card, or via `/api/memory`. **Honest limit:** recall is keyword-based (lo
 no vector DB) — it matches shared words, not meaning, so phrase memories with words
 you'd search for. Semantic recall (e.g. an embedding model) is a possible future upgrade.
 
-### Using the job_finder skill
-It wraps the standalone `jobify` repo (kept separate, imported — not copied). Point
-Aegis at your jobfinder checkout and create a task with `skill: "job_finder"`:
+### The Jobs page (`/jobs`) — your job-match review workspace
+Run a `job_finder` task, then open **http://127.0.0.1:8777/jobs**:
 ```bash
 AEGIS_JOBIFY_PATH=/path/to/jobfinder ./scripts/start.sh
+# dashboard → add a task with skill "job_finder" (description = keywords)
 ```
-On the dashboard, the Skills card lists it; a job_finder task runs jobify through the
-full pipeline (worker → governor safety check → search → ranked summary). Full results
-go to jobify's own CSV/Sheet sink. It's read-only (OBSERVE) — it never applies.
+The skill searches (US + student-level filtered), stores jobs in Aegis's DB, and the
+model analyzes each one. The `/jobs` page then shows:
+- **A ranked table** (medicine/medical-AI first, by fit × path).
+- **Click a job → a detail panel**: why it fits, the description, **what you have**,
+  **what you're missing**, **steps to strengthen your application**, and a **suggested
+  submission draft to review** (never auto-sent).
+- **Tiered reveal:** only the top tier shows first; mark each **Applied/Skip**, and the
+  next tier unlocks when the current one is cleared.
+
+Scoring is one job at a time and governor-gated, so a big batch stays cool — the page
+updates live as jobs finish analyzing.
 
 ## ⚠️ Protecting your battery (read this)
 Aegis is tuned to avoid the conditions that age a laptop battery — **sustained heat

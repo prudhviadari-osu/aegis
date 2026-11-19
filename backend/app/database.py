@@ -70,6 +70,36 @@ CREATE TABLE IF NOT EXISTS setting (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Jobs found + scored by the job_finder skill (M5.5: the /jobs review page).
+CREATE TABLE IF NOT EXISTS job (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_key        TEXT NOT NULL UNIQUE,     -- dedup key from jobify
+    source         TEXT,
+    company        TEXT,
+    title          TEXT,
+    location       TEXT,
+    url            TEXT,
+    description    TEXT,
+    -- scoring / fit (filled when scored)
+    ring           INTEGER,                  -- 1 core-med, 2 med-AI, 3 adjacent, 4 off
+    fit_score      REAL,
+    path_score     REAL,
+    rank           REAL,                     -- fit * path, for ordering
+    reasoning      TEXT,                     -- why it fits (advisor verdict)
+    have_json      TEXT,                     -- JSON list: strengths the user HAS
+    missing_json   TEXT,                     -- JSON list: gaps the user is MISSING
+    steps_json     TEXT,                     -- JSON list: steps to cover gaps / strengthen
+    draft          TEXT,                     -- suggested application submission (for review)
+    -- review workflow
+    tier           INTEGER DEFAULT 1,        -- reveal tier (1 shows first)
+    review_status  TEXT DEFAULT 'new',       -- new | applied | skipped
+    scored         INTEGER DEFAULT 0,        -- 0 until the model has analyzed it
+    found_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_job_tier   ON job(tier);
+CREATE INDEX IF NOT EXISTS idx_job_status ON job(review_status);
+CREATE INDEX IF NOT EXISTS idx_job_rank   ON job(rank DESC);
+
 CREATE INDEX IF NOT EXISTS idx_task_status   ON task(status);
 CREATE INDEX IF NOT EXISTS idx_event_task    ON task_event(task_id);
 CREATE INDEX IF NOT EXISTS idx_approval_task ON approval(task_id);

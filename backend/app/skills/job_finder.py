@@ -39,29 +39,80 @@ def _import_jobify():
 
 
 def _handler(task: dict, checkpoint) -> str:
-    """Run a job search and return a short human-readable summary. Full results
-    go to jobify's own sink (CSV/Sheet); here we surface a digest for the task."""
+    """Search jobs, store them in Aegis's job table, analyze each with the model
+    (have/missing/steps/draft), and assign reveal tiers. Results show on /jobs.
+
+    Only jobs that pass jobify's filters (US + student-level) are stored. Scoring
+    is one-at-a-time and governor-gated, so a big batch stays gentle on the Mac.
+    """
+    from .. import config
+    from ..jobs import upsert_job, set_score, assign_tiers
+    from ..jobs.analyzer import analyze_job, _profile_brief
+    from ..models import get_adapter
+    from ..resources import Governor
+
     gather, jf_config = _import_jobify()
 
-    # Keywords: use the task description if given, else jobify's configured defaults.
     desc = (task.get("description") or "").strip()
     keywords = [k.strip() for k in desc.split(",") if k.strip()] or jf_config.KEYWORDS
 
     checkpoint({"step": "searching", "keywords": keywords})
-    jobs = gather(keywords)
+    found = gather(keywords)
+    # jobify tags filtered jobs; keep only the ones that passed (status 'new').
+    kept = [j for j in found if getattr(j, "status", "new") == "new"]
+    checkpoint({"step": "gathered", "found": len(found), "kept": len(kept)})
+    if not kept:
+        return (f"Searched {len(found)} jobs but none passed your US + student-level "
+                "filters. Try broader keywords, or add a job source in jobify config.")
 
-    checkpoint({"step": "gathered", "count": len(jobs)})
-    if not jobs:
-        return ("No jobs found. Check that a source is configured (Workday seed "
-                "companies, or Arbeitnow is on) in the jobfinder config.")
+    # Store each kept job in Aegis's job table.
+    stored = []
+    for j in kept:
+        row = upsert_job({
+            "job_key": j.job_key, "source": getattr(j, "source", ""),
+            "company": getattr(j, "company", ""), "title": getattr(j, "title", ""),
+            "location": getattr(j, "location", ""), "url": getattr(j, "url", ""),
+            "description": getattr(j, "description", ""),
+        })
+        stored.append(row)
 
-    # Rank preview: jobs jobify didn't filter out, newest-ish first.
-    kept = [j for j in jobs if getattr(j, "status", "new") != "location_filtered"]
-    lines = [f"Found {len(jobs)} jobs ({len(kept)} within your location rules). Top:"]
-    for j in kept[:10]:
-        lines.append(f"  • {j.title} @ {j.company} — {j.location or 'n/a'}  [{j.source}]")
-    lines.append("\nFull, deduped results were written to jobify's sink (CSV/Sheet).")
-    return "\n".join(lines)
+    # Analyze each with the model (the expensive part) — governor-gated + load profile.
+    adapter = get_adapter(config)
+    governor = Governor(config)
+    profile = _load_profile(config)
+    brief = _profile_brief(profile)
+    analyzed = 0
+    if adapter.available():
+        for i, row in enumerate(stored):
+            if not governor.evaluate().proceed:
+                checkpoint({"step": "paused_by_governor", "analyzed": analyzed})
+                break   # device too hot/low — stop scoring; what's done is saved
+            a = analyze_job(adapter, row, brief)
+            set_score(row["id"], ring=a["ring"], fit_score=a["fit_score"],
+                      path_score=a["path_score"], reasoning=a["reasoning"],
+                      have=a["have"], missing=a["missing"], steps=a["steps"], draft=a["draft"])
+            analyzed += 1
+            checkpoint({"step": "scoring", "done": analyzed, "total": len(stored)})
+    assign_tiers()
+
+    return (f"Found {len(found)} jobs → {len(kept)} passed filters → analyzed "
+            f"{analyzed}. Open the Jobs page to review your ranked matches.")
+
+
+def _load_profile(config) -> dict:
+    """Reuse Aegis's profile loader so analysis is grounded in the real profile."""
+    from ..skills.registry import Skill  # noqa (avoid circular at import time)
+    import json, os
+    # Aegis profile lives with the finder package (jobify) or the run loader.
+    try:
+        from ..main import load_profile
+        return load_profile()
+    except Exception:  # noqa: BLE001
+        path = os.path.join(config.JOBIFY_PATH, "finder", "profile.json")
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        return {"basics": {}, "summary": "", "experience": [], "education": [], "skills": {}}
 
 
 def register() -> None:
