@@ -13,5 +13,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "httpx>=0.27"]
 
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Explicitly tell setuptools which packages to install. Without this it auto-
+# discovers top-level dirs and fails once runtime folders (data/, .venv/) exist.
+[tool.setuptools.packages.find]
+include = ["backend*"]
+exclude = ["data*", "tests*"]
+
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
