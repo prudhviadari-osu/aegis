@@ -22,9 +22,11 @@ def list_jobs(show_all: bool = False) -> dict:
         "id": j["id"], "company": j["company"], "title": j["title"],
         "location": j["location"], "ring": j["ring"], "fit_score": j["fit_score"],
         "path_score": j["path_score"], "rank": j["rank"], "tier": j["tier"],
-        "review_status": j["review_status"],
+        "review_status": j["review_status"], "scored": j["scored"],
     } for j in jobs]
-    return {"current_tier": current_tier(), "count": len(table), "jobs": table}
+    any_unscored = any(not j["scored"] for j in jobs)
+    return {"current_tier": current_tier(), "count": len(table),
+            "no_model": any_unscored, "jobs": table}
 
 
 @router.get("/api/jobs/{job_id}")

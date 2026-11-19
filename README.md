@@ -38,6 +38,15 @@ model analyzes each one. The `/jobs` page then shows:
 Scoring is one job at a time and governor-gated, so a big batch stays cool — the page
 updates live as jobs finish analyzing.
 
+**No model running?** The job finder still works: it searches, filters, and fills the
+Jobs table with the raw matches, flagged **"no model used"** — no fake scores. Start
+Ollama and re-run the task to get fit ranking, have/missing, steps, and drafts.
+
+### Adding a job source from the dashboard
+On the main dashboard, **Add a job source** takes a company's Workday careers URL
+(e.g. `https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers`), parses it, and
+registers it — searched on the next job_finder run. No config-file editing needed.
+
 ## ⚠️ Protecting your battery (read this)
 Aegis is tuned to avoid the conditions that age a laptop battery — **sustained heat
 and holding a hot battery at full charge** (the main culprits, worse than one-off hard

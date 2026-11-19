@@ -200,6 +200,26 @@ async function refreshJobsSummary() {
   } catch (e) { /* ignore */ }
 }
 
+document.getElementById("source-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("source-input");
+  const msg = document.getElementById("source-msg");
+  const url = input.value.trim();
+  if (!url) return;
+  msg.textContent = "Adding…";
+  try {
+    const res = await fetch("/api/sources", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const data = await res.json();
+    if (res.ok) { msg.textContent = "✓ " + data.message; input.value = ""; }
+    else { msg.textContent = "⚠ " + (data.detail || "could not add source"); }
+  } catch (err) {
+    msg.textContent = "⚠ Could not reach the backend.";
+  }
+});
+
 refreshStatus();
 refreshTasks();
 loadSkills();

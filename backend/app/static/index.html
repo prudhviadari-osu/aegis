@@ -73,6 +73,18 @@
     </section>
 
     <section class="card">
+      <h2>Add a job source</h2>
+      <p class="muted">Paste a company's Workday careers URL (e.g.
+        https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers). It's searched on the
+        next job_finder run.</p>
+      <form id="source-form">
+        <input id="source-input" type="text" placeholder="https://company.wd1.myworkdayjobs.com/Careers" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <p id="source-msg" class="muted"></p>
+    </section>
+
+    <section class="card">
       <h2>Skills</h2>
       <ul id="skill-list"><li class="muted">Loading…</li></ul>
     </section>

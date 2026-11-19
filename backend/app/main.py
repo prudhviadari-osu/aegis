@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import chat, health, jobs, memory, resources, skills, tasks
+from .api import chat, health, jobs, memory, resources, skills, sources, tasks
 from .database import init_db
 from .skills import load_builtin_skills
 from .tasks.worker import worker, requeue_interrupted
@@ -50,6 +50,7 @@ app.include_router(resources.router)
 app.include_router(skills.router)
 app.include_router(memory.router)
 app.include_router(jobs.router)
+app.include_router(sources.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 

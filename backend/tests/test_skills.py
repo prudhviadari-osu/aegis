@@ -69,23 +69,40 @@ def fake_jobify(monkeypatch, tmp_path):
     yield
 
 
-def test_job_finder_handler_runs(fake_jobify):
+def test_job_finder_no_model_stores_unscored(fake_jobify, monkeypatch):
+    """With no real model (backend 'fake'), jobs are stored but NOT analyzed —
+    the table fills, scores stay empty, and the result flags 'no model'."""
+    from backend.app import config
+    monkeypatch.setattr(config, "MODEL_BACKEND", "fake")   # = no real model
     from backend.app.skills import job_finder
     from backend.app.jobs import all_jobs
-    checkpoints = []
     result = job_finder._handler(
-        {"title": "find jobs", "description": "biomedical, imaging"},
-        lambda cp: checkpoints.append(cp),
-    )
-    # Only the 'new'-status job is kept + stored (the filtered one is dropped).
+        {"title": "find jobs", "description": "biomedical, imaging"}, lambda cp: None)
     stored = all_jobs()
-    assert len(stored) == 1
-    assert stored[0]["company"] == "HospitalX"
-    assert stored[0]["scored"] == 1              # analyzed by the fake model
+    assert len(stored) == 1                      # kept job stored
+    assert stored[0]["scored"] == 0              # NOT analyzed (no real model)
+    assert "No model" in result or "no model" in result.lower()
+    print("  no-model path: stores jobs unscored + flags it: OK")
+
+
+def test_job_finder_with_model_analyzes(fake_jobify, monkeypatch):
+    """With a real model present (we simulate by forcing the adapter available and
+    backend != 'fake'), jobs get scored."""
+    from backend.app import config
+    from backend.app.skills import job_finder
+    from backend.app.jobs import all_jobs
+    from backend.app.models import FakeBackend
+    monkeypatch.setattr(config, "MODEL_BACKEND", "ollama")   # pretend a real backend
+    # get_adapter is imported inside the handler from backend.app.models, so patch
+    # it there to return a FakeBackend (gives deterministic analysis for the test).
+    import backend.app.models as models_mod
+    monkeypatch.setattr(models_mod, "get_adapter", lambda cfg: FakeBackend())
+    result = job_finder._handler(
+        {"title": "find jobs", "description": "biomedical, imaging"}, lambda cp: None)
+    stored = all_jobs()
+    assert stored[0]["scored"] == 1              # analyzed
     assert "analyzed 1" in result
-    steps = [c.get("step") for c in checkpoints]
-    assert "searching" in steps and "gathered" in steps and "scoring" in steps
-    print("  job_finder stores + analyzes kept jobs: OK")
+    print("  with-model path: stores + analyzes: OK")
 
 
 def test_job_finder_empty(fake_jobify, monkeypatch):

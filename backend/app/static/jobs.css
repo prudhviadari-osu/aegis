@@ -38,3 +38,5 @@ tbody tr.selected { background: #1d2433; }
 .btn-skip { background: #39404f; }
 .fit-bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; width: 60px; }
 .fit-bar > span { display: block; height: 100%; background: var(--ok); }
+.warn-banner { background: rgba(224,179,65,0.12); border: 1px solid #e0b341; color: #e0b341;
+  border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; }

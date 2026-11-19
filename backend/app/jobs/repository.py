@@ -92,19 +92,20 @@ def set_review_status(job_id: int, status: str) -> dict | None:
 
 
 def assign_tiers() -> None:
-    """Assign reveal tiers by rank: best jobs = tier 1, next = tier 2, etc.
-    Rings 1-2 (medicine / medical-AI) are favored into early tiers. Tier size is
-    small so the user reviews a handful at a time."""
+    """Assign reveal tiers. Scored jobs rank by ring + fit (best first). Unscored
+    jobs (no model was run) all go to tier 1 so the raw table is fully visible —
+    there's no ranking to gate on, so nothing is hidden."""
     conn = connect()
     try:
-        rows = conn.execute(
+        scored = conn.execute(
             "SELECT id FROM job WHERE scored=1 "
             "ORDER BY (CASE WHEN ring IN (1,2) THEN 0 ELSE 1 END), rank DESC, id"
         ).fetchall()
         tier_size = 5
-        for i, r in enumerate(rows):
-            tier = (i // tier_size) + 1
-            conn.execute("UPDATE job SET tier=? WHERE id=?", (tier, r["id"]))
+        for i, r in enumerate(scored):
+            conn.execute("UPDATE job SET tier=? WHERE id=?", ((i // tier_size) + 1, r["id"]))
+        # Unscored jobs: all tier 1 (no ranking exists to tier them by).
+        conn.execute("UPDATE job SET tier=1 WHERE scored=0")
         conn.commit()
     finally:
         conn.close()
@@ -115,7 +116,7 @@ def current_tier() -> int:
     conn = connect()
     try:
         row = conn.execute(
-            "SELECT MIN(tier) AS t FROM job WHERE scored=1 AND review_status='new'"
+            "SELECT MIN(tier) AS t FROM job WHERE review_status='new'"
         ).fetchone()
         return row["t"] if row and row["t"] is not None else 1
     finally:
@@ -124,14 +125,15 @@ def current_tier() -> int:
 
 def visible_jobs() -> list[dict]:
     """Jobs the user should see now: everything up to and including the current
-    tier (so reviewed ones stay visible, and the active tier is revealed, but
-    deeper tiers stay hidden until unlocked)."""
+    tier. Includes unscored jobs (no model run) so the table fills regardless —
+    scored jobs sort first by fit, unscored jobs follow."""
     tier = current_tier()
     conn = connect()
     try:
         rows = conn.execute(
-            "SELECT * FROM job WHERE scored=1 AND tier<=? "
-            "ORDER BY (CASE WHEN ring IN (1,2) THEN 0 ELSE 1 END), rank DESC, id",
+            "SELECT * FROM job WHERE tier<=? "
+            "ORDER BY scored DESC, (CASE WHEN ring IN (1,2) THEN 0 ELSE 1 END), "
+            "rank DESC, id",
             (tier,)).fetchall()
         return [_row(r) for r in rows]
     finally:

@@ -76,17 +76,21 @@ def _handler(task: dict, checkpoint) -> str:
         })
         stored.append(row)
 
-    # Analyze each with the model (the expensive part) — governor-gated + load profile.
+    # Analyze each with the model — but ONLY if a real model is reachable.
+    # No model? The table still fills; jobs stay unscored and flagged "no model
+    # used" (we never show fabricated scores). Governor-gated + loads the profile.
     adapter = get_adapter(config)
-    governor = Governor(config)
-    profile = _load_profile(config)
-    brief = _profile_brief(profile)
+    backend = getattr(config, "MODEL_BACKEND", "ollama")
+    real_model = adapter.available() and backend != "fake"
+
     analyzed = 0
-    if adapter.available():
-        for i, row in enumerate(stored):
+    if real_model:
+        governor = Governor(config)
+        brief = _profile_brief(_load_profile(config))
+        for row in stored:
             if not governor.evaluate().proceed:
                 checkpoint({"step": "paused_by_governor", "analyzed": analyzed})
-                break   # device too hot/low — stop scoring; what's done is saved
+                break
             a = analyze_job(adapter, row, brief)
             set_score(row["id"], ring=a["ring"], fit_score=a["fit_score"],
                       path_score=a["path_score"], reasoning=a["reasoning"],
@@ -95,6 +99,11 @@ def _handler(task: dict, checkpoint) -> str:
             checkpoint({"step": "scoring", "done": analyzed, "total": len(stored)})
     assign_tiers()
 
+    if not real_model:
+        return (f"Found {len(found)} jobs → {len(kept)} passed filters, stored to the "
+                "Jobs table. ⚠ No model running, so they're NOT ranked or analyzed — "
+                "the table shows the raw matches. Start Ollama (qwen3:8b) and re-run to "
+                "get fit ranking, have/missing, and drafts.")
     return (f"Found {len(found)} jobs → {len(kept)} passed filters → analyzed "
             f"{analyzed}. Open the Jobs page to review your ranked matches.")
 

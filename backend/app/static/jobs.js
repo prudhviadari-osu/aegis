@@ -11,19 +11,34 @@ async function loadTable() {
   document.getElementById("tier-pill").textContent = "tier " + data.current_tier;
   document.getElementById("tier-pill").className = "pill pill-ok";
   document.getElementById("job-count").textContent = `(${data.count} shown)`;
+
+  // Warning banner when jobs aren't model-analyzed.
+  const banner = document.getElementById("no-model-banner");
+  if (data.no_model) {
+    banner.style.display = "block";
+    banner.textContent = "⚠ No model used — these are raw matches, not ranked or analyzed. "
+      + "Start Ollama (qwen3:8b) and re-run the job_finder task for fit ranking, "
+      + "have/missing, and drafts.";
+  } else {
+    banner.style.display = "none";
+  }
+
   const body = document.getElementById("job-rows");
   if (!data.jobs.length) {
-    body.innerHTML = '<tr><td colspan="5" class="muted">No scored jobs yet. Run a job_finder task on the dashboard.</td></tr>';
+    body.innerHTML = '<tr><td colspan="5" class="muted">No jobs yet. Run a job_finder task on the dashboard.</td></tr>';
     return;
   }
   body.innerHTML = "";
   for (const j of data.jobs) {
     const tr = document.createElement("tr");
     if (j.id === selectedId) tr.className = "selected";
-    const pct = Math.round((j.fit_score || 0) * 100);
+    const fitCell = j.scored
+      ? `<div class="fit-bar"><span style="width:${Math.round((j.fit_score||0)*100)}%"></span></div>`
+      : '<span class="muted">—</span>';
+    const ringCell = j.scored ? ringBadge(j.ring) : '<span class="muted">unranked</span>';
     tr.innerHTML = `
-      <td><div class="fit-bar"><span style="width:${pct}%"></span></div></td>
-      <td>${ringBadge(j.ring)}</td>
+      <td>${fitCell}</td>
+      <td>${ringCell}</td>
       <td>${j.title ?? ""}</td>
       <td>${j.company ?? ""}</td>
       <td class="status-${j.review_status}">${j.review_status}</td>`;
