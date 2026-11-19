@@ -34,8 +34,12 @@ async def lifespan(app: FastAPI):
         print(f"Recovered {recovered} interrupted task(s) — re-queued.")
     worker.start()
     yield
-    # Shutdown: stop the worker cleanly (finishes current task, saves state).
-    worker.stop()
+    # Shutdown: stop the worker with a bounded wait so Ctrl+C never hangs.
+    # If a task is mid-model-call (uninterruptible), we wait briefly then let the
+    # daemon thread die with the process — its state is already saved in SQLite.
+    print("Stopping worker… (up to 3s)")
+    worker.stop(join_timeout=3.0)
+    print("Aegis stopped. Any in-flight task is saved and will resume on restart.")
 
 
 app = FastAPI(title="Aegis", version="0.1.0", lifespan=lifespan)

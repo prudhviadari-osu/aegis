@@ -61,9 +61,17 @@ class Worker:
         self._thread = threading.Thread(target=self._loop, name="aegis-worker", daemon=True)
         self._thread.start()
 
-    def stop(self) -> None:
-        """Signal the loop to finish the current task and exit cleanly."""
+    def stop(self, join_timeout: float = 3.0) -> None:
+        """Signal the loop to stop and wait briefly for it to exit.
+
+        We join with a short timeout so shutdown is BOUNDED: if the worker is
+        stuck mid-model-call (which can't be interrupted), we stop waiting after
+        join_timeout and let the daemon thread die with the process. This is what
+        prevents Ctrl+C from hanging on 'waiting for background tasks'.
+        """
         self._stop.set()
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=join_timeout)
 
     def _next_queued(self) -> dict | None:
         queued = repo.list_tasks(status="queued")
