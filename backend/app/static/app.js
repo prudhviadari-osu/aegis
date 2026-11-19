@@ -189,9 +189,22 @@ document.getElementById("memory-form").addEventListener("submit", async (e) => {
   refreshMemory();
 });
 
+async function refreshJobsSummary() {
+  try {
+    const all = await (await fetch("/api/jobs?show_all=true")).json();
+    const el = document.getElementById("jobs-summary");
+    if (!all.count) { el.textContent = "No jobs analyzed yet — run a job_finder task."; return; }
+    const applied = all.jobs.filter((j) => j.review_status === "applied").length;
+    const topRing = all.jobs.filter((j) => j.ring === 1 || j.ring === 2).length;
+    el.textContent = `${all.count} analyzed · ${topRing} medicine/medical-AI matches · ${applied} marked applied · currently on tier ${all.current_tier}.`;
+  } catch (e) { /* ignore */ }
+}
+
 refreshStatus();
 refreshTasks();
 loadSkills();
 refreshMemory();
+refreshJobsSummary();
+setInterval(refreshJobsSummary, 6000);
 setInterval(refreshStatus, 8000);
 setInterval(refreshTasks, 4000);
