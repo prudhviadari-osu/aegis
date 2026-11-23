@@ -79,7 +79,12 @@ def settings_page() -> FileResponse:
 def run() -> None:
     import uvicorn
     print(f"Aegis → http://{config.HOST}:{config.PORT}  (local only)")
-    uvicorn.run(app, host=config.HOST, port=config.PORT, log_level="info")
+    print("Press Ctrl+C to stop (exits within a few seconds). Ctrl+C twice = force quit.")
+    # timeout_graceful_shutdown bounds how long uvicorn waits on in-flight HTTP
+    # requests (e.g. a dashboard poll mid-Ollama-call) before closing them — so
+    # Ctrl+C doesn't hang waiting on a slow model request.
+    uvicorn.run(app, host=config.HOST, port=config.PORT, log_level="info",
+                timeout_graceful_shutdown=5)
 
 
 if __name__ == "__main__":

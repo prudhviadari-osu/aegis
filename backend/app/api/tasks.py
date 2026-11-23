@@ -32,6 +32,35 @@ def list_all(status: str | None = None) -> list[dict]:
     return repo.list_tasks(status=status)
 
 
+@router.get("/api/tasks/running")
+def running() -> dict:
+    """What the worker is doing right now + how long it's been at it. Lets you see
+    a long-running/stuck task (and the dashboard show it) instead of guessing."""
+    from ..tasks.worker import worker
+    tid = worker.current_task_id
+    if tid is None:
+        return {"running": False}
+    task = repo.get_task(tid) or {}
+    started = task.get("started_at")
+    elapsed = None
+    if started:
+        from datetime import datetime, timezone
+        try:
+            t0 = datetime.fromisoformat(started).replace(tzinfo=timezone.utc)
+            elapsed = int((datetime.now(timezone.utc) - t0).total_seconds())
+        except ValueError:
+            pass
+    # Latest checkpoint detail = the current step (e.g. "scoring 12/37").
+    step = ""
+    for ev in reversed(repo.events(tid)):
+        if ev["type"] == "checkpoint":
+            step = ev["details"]
+            break
+    return {"running": True, "task_id": tid,
+            "title": worker.current_task_title,
+            "elapsed_seconds": elapsed, "step": step}
+
+
 @router.get("/api/tasks/{task_id}")
 def detail(task_id: int) -> dict:
     task = repo.get_task(task_id)

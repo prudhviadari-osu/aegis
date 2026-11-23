@@ -32,6 +32,18 @@ async function refresh() {
     const tasks = await (await fetch("/api/tasks?status=running")).json();
     document.getElementById("h-tasks").textContent = tasks.length;
   } catch {}
+
+  // Show what the worker is doing right now + how long (so nothing's a mystery).
+  try {
+    const r = await (await fetch("/api/tasks/running")).json();
+    const el = document.getElementById("h-running");
+    if (r.running) {
+      const mins = r.elapsed_seconds != null ? ` · ${Math.floor(r.elapsed_seconds / 60)}m ${r.elapsed_seconds % 60}s` : "";
+      el.textContent = `#${r.task_id} ${r.title}${mins}${r.step ? " · " + r.step : ""}`;
+    } else {
+      el.textContent = "idle";
+    }
+  } catch {}
 }
 
 const history = [];

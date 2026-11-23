@@ -61,17 +61,26 @@ class Worker:
         self._thread = threading.Thread(target=self._loop, name="aegis-worker", daemon=True)
         self._thread.start()
 
+    # Track what the worker is currently doing, for visibility + shutdown messages.
+    current_task_id: int | None = None
+    current_task_title: str = ""
+
     def stop(self, join_timeout: float = 3.0) -> None:
         """Signal the loop to stop and wait briefly for it to exit.
 
-        We join with a short timeout so shutdown is BOUNDED: if the worker is
-        stuck mid-model-call (which can't be interrupted), we stop waiting after
-        join_timeout and let the daemon thread die with the process. This is what
-        prevents Ctrl+C from hanging on 'waiting for background tasks'.
+        BOUNDED: if the worker is stuck mid-model-call (uninterruptible), we stop
+        waiting after join_timeout and let the daemon thread die with the process.
+        Prints what it's waiting on so shutdown isn't a mystery.
         """
         self._stop.set()
         if self._thread and self._thread.is_alive():
+            if self.current_task_id is not None:
+                print(f"Waiting up to {join_timeout:.0f}s for task "
+                      f"#{self.current_task_id} ('{self.current_task_title}') to pause…")
             self._thread.join(timeout=join_timeout)
+            if self._thread.is_alive():
+                print("Task still mid-step (a model call can't be interrupted) — "
+                      "exiting anyway; its progress is saved and it resumes on restart.")
 
     def _next_queued(self) -> dict | None:
         queued = repo.list_tasks(status="queued")
@@ -82,6 +91,8 @@ class Worker:
     def _run_one(self, task: dict) -> None:
         tid = task["id"]
         repo.transition(tid, "running")
+        self.current_task_id = tid
+        self.current_task_title = task.get("title", "")
         handler = _handlers.get(task["skill"], _default_handler)
         try:
             result = handler(task, lambda cp: repo.save_checkpoint(tid, cp))
@@ -90,6 +101,9 @@ class Worker:
         except Exception as exc:   # noqa: BLE001 - record any failure, don't crash the worker
             repo.set_error(tid, str(exc))
             repo.transition(tid, "failed", str(exc))
+        finally:
+            self.current_task_id = None
+            self.current_task_title = ""
 
     def _loop(self) -> None:
         from ..resources import Governor
