@@ -66,6 +66,8 @@ APIs. Tuned to stay cool and spare your battery.
 A clean plain-HTML UI with a shared clickable header. No build step.
 - **Home** — status summary (model, device, jobs, running tasks) + chat + quick links.
 - **Job Search** (`/jobs`) — the job workspace (see 3.6). *Job tasks start only here.*
+- **Tasks** (`/tasks`) — live task tracker: what's running (with elapsed + ETA +
+  progress bar), the queue (next-up order), and recent finished tasks.
 - **Model Metrics** (`/metrics`) — model details, memory-fit estimate, device safety.
 - **Settings** (`/settings`) — model, context, RAM, KV cache, API keys.
 

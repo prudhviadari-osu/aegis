@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aegis · Tasks</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brand">Aegis</span>
+    <a href="/">Home</a>
+    <a href="/jobs">Job Search</a>
+    <a href="/tasks" class="active">Tasks</a>
+    <a href="/metrics">Model Metrics</a>
+    <a href="/settings">Settings</a>
+    <span class="spacer"></span>
+    <span id="q-pill" class="pill pill-unknown">queue —</span>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Running now</h2>
+      <div id="running">
+        <p class="muted">Nothing running — the worker is idle.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Queue <span id="queue-count" class="muted"></span></h2>
+      <p class="sub">Tasks waiting to run. The worker runs one at a time (gentle on your Mac).</p>
+      <ul id="queue-list"><li class="muted">Queue is empty.</li></ul>
+    </section>
+
+    <section class="card">
+      <h2>Recent</h2>
+      <ul id="recent-list"><li class="muted">No finished tasks yet.</li></ul>
+    </section>
+  </main>
+
+  <script src="/static/tasks.js"></script>
+</body>
+</html>

@@ -61,6 +61,64 @@ def running() -> dict:
             "elapsed_seconds": elapsed, "step": step}
 
 
+@router.get("/api/tasks/overview")
+def overview() -> dict:
+    """Everything the Tasks dashboard needs: the running task (with elapsed + a
+    best-effort ETA), the queue, and recent finished tasks. (Declared before the
+    /{task_id} route so 'overview' isn't captured as an int id.)"""
+    from datetime import datetime, timezone
+    from ..tasks.worker import worker
+
+    def _elapsed(started: str | None) -> int | None:
+        if not started:
+            return None
+        try:
+            t0 = datetime.fromisoformat(started).replace(tzinfo=timezone.utc)
+            return int((datetime.now(timezone.utc) - t0).total_seconds())
+        except ValueError:
+            return None
+
+    all_tasks = repo.list_tasks(limit=200)
+
+    # --- Running task + ETA ---
+    running_obj = None
+    tid = worker.current_task_id
+    if tid is not None:
+        t = repo.get_task(tid) or {}
+        # The full checkpoint JSON (on the task row) holds the real progress values.
+        import json
+        step, done, total = "", None, None
+        cp_raw = t.get("checkpoint")
+        if cp_raw:
+            try:
+                cp = json.loads(cp_raw)
+                step = cp.get("step", "")
+                done = cp.get("done")
+                total = cp.get("total")
+            except (ValueError, TypeError):
+                pass
+        elapsed = _elapsed(t.get("started_at"))
+        eta = None
+        # ETA = remaining items × avg time-per-item so far (only if we have counts).
+        if elapsed and done and total and done > 0 and total > done:
+            per = elapsed / done
+            eta = int(per * (total - done))
+        running_obj = {"task_id": tid, "title": worker.current_task_title,
+                       "elapsed_seconds": elapsed, "step": step,
+                       "done": done, "total": total, "eta_seconds": eta}
+
+    queued = [{"task_id": t["id"], "title": t["title"], "skill": t["skill"],
+               "status": t["status"]}
+              for t in all_tasks if t["status"] in ("queued", "pending_approval", "paused")]
+
+    recent = [{"task_id": t["id"], "title": t["title"], "status": t["status"],
+               "result": (t.get("result") or t.get("error") or "")[:120]}
+              for t in all_tasks if t["status"] in ("completed", "failed", "cancelled")][:10]
+
+    return {"running": running_obj, "queued": queued, "queue_length": len(queued),
+            "recent": recent}
+
+
 @router.get("/api/tasks/{task_id}")
 def detail(task_id: int) -> dict:
     task = repo.get_task(task_id)

@@ -86,6 +86,20 @@ searched on the next run — no config editing.
 
 ---
 
+## 2b. Tasks (`/tasks`) — watch what's happening
+
+The Tasks page is your live tracker:
+- **Running now** — the current task, how long it's been going, the current step, a
+  progress bar, and an **ETA** ("~2m 10s left (estimate)"). The ETA is a best-effort
+  estimate from how fast items have finished so far — directional, not exact.
+- **Queue** — tasks waiting, in run order (the worker does one at a time). "next up"
+  marks what runs next.
+- **Recent** — finished tasks with their outcome.
+
+This is where you watch a long job search progress, and confirm a task is moving (not
+stuck). A search that's slow is normal — each job is a model call; the ETA tells you
+roughly how long.
+
 ## 3. Model Metrics (`/metrics`)
 
 At-a-glance tiles:

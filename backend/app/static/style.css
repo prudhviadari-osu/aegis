@@ -107,3 +107,7 @@ footer { text-align: center; padding: 1.5rem; }
 .bubble-user { align-self: flex-end; background: var(--accent); color: #fff; }
 .bubble-assistant { align-self: flex-start; background: #0e1016; border: 1px solid var(--line); }
 .bubble-error { border-color: var(--bad); color: var(--bad); }
+
+/* Progress bar (shared: tasks + jobs pages) */
+.fit-bar { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; width: 60px; }
+.fit-bar > span { display: block; height: 100%; background: var(--ok); }

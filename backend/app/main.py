@@ -66,6 +66,11 @@ def jobs_page() -> FileResponse:
     return FileResponse(STATIC_DIR / "jobs.html")
 
 
+@app.get("/tasks")
+def tasks_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "tasks.html")
+
+
 @app.get("/metrics")
 def metrics_page() -> FileResponse:
     return FileResponse(STATIC_DIR / "metrics.html")
