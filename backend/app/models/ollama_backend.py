@@ -58,6 +58,20 @@ class OllamaBackend(ModelAdapter):
                          context_window=ctx, parameters=params,
                          quantization=quant, note=note)
 
+    def _effective_ctx(self) -> int:
+        """Never request more context than the model actually supports — asking
+        for more than its real context_length can make the call fail. Cap num_ctx
+        to the model's advertised window when we can read it."""
+        try:
+            r = requests.post(f"{self.host}/api/show", json={"model": self.model}, timeout=6)
+            if r.status_code == 200:
+                for k, v in (r.json().get("model_info") or {}).items():
+                    if k.endswith("context_length") and isinstance(v, int) and v > 0:
+                        return min(self.num_ctx, v)
+        except requests.RequestException:
+            pass
+        return self.num_ctx
+
     def chat(self, messages: list[dict], temperature: float = 0.7) -> str:
         payload = {
             "model": self.model,
@@ -66,20 +80,31 @@ class OllamaBackend(ModelAdapter):
             "think": self.think,          # Qwen3 reasons before answering (accuracy win)
             "options": {
                 "temperature": temperature,
-                "num_ctx": self.num_ctx,              # actually use the big context
+                "num_ctx": self._effective_ctx(),     # capped to the model's real limit
                 "cache_type_k": self.kv_cache_type,   # 8-bit KV cache: ~half the memory
                 "cache_type_v": self.kv_cache_type,
             },
         }
         try:
             r = requests.post(f"{self.host}/api/chat", json=payload, timeout=self.timeout)
-            r.raise_for_status()
-            body = r.json()
         except requests.RequestException as exc:
             raise ModelError(
-                f"Ollama not reachable at {self.host} ({exc}). "
-                f"Is it running? Try: ollama pull {self.model}"
+                f"Can't reach Ollama at {self.host} ({exc}). Is the Ollama app running?"
             ) from exc
+        # Ollama IS reachable here — so report the REAL error, not "not running".
+        if r.status_code != 200:
+            detail = ""
+            try:
+                detail = r.json().get("error", "")
+            except ValueError:
+                detail = r.text[:200]
+            raise ModelError(
+                f"Ollama rejected the request (HTTP {r.status_code}): {detail}. "
+                f"Model asked for: '{self.model}'. Check the name matches `ollama list`, "
+                "and that the context isn't larger than the model supports."
+            )
+        try:
+            body = r.json()
         except ValueError as exc:
             raise ModelError(f"Ollama returned invalid JSON: {exc}") from exc
         return (body.get("message") or {}).get("content", "")

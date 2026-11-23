@@ -159,7 +159,7 @@ limits the charge; together they spare the battery.
 | Install fails, "multiple top-level packages" | fixed — `git pull`; it declares `backend` explicitly now |
 | Ctrl+C hangs | fixed — now exits within ~3s; state is saved and resumes next launch |
 | Jobs page empty | see the box in §2 — usually "0 passed filters" or still running |
-| Model "not running" | start Ollama and `ollama pull qwen3:8b`; check `ollama list` |
+| Model "not running" / "not online" | 1) `curl http://localhost:11434/api/tags` — if it errors, open the Ollama app. 2) `ollama list` — launch Aegis with `AEGIS_OLLAMA_MODEL=<exact name shown>` (e.g. `qwen3:8b`). 3) Don't set `AEGIS_TARGET_CONTEXT` higher than the model's real context_length (Qwen3 8B is ~40960, so use 32000) — Aegis now caps it, but keep it under to be safe. |
 | Mac struggles / fans spin | lower `AEGIS_TARGET_CONTEXT` (e.g. 8000), ensure 8-bit KV cache on, close Chrome tabs, or use `qwen3:4b` |
 | "no model used" banner on Jobs | expected with no model — raw matches, not analyzed; start Ollama and re-run |
 
