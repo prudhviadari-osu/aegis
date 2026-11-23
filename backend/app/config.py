@@ -7,9 +7,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-# Project root = two levels up from this file's package (backend/app -> repo root).
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = Path(os.environ.get("AEGIS_DATA_DIR", REPO_ROOT / "data"))
+# Persistent data lives in a STABLE per-user location (~/.aegis), NOT inside the
+# repo. This way the database survives re-cloning, running from any directory, and
+# `rm -rf data` — it's your real, permanent, local store. Override with AEGIS_DATA_DIR.
+DEFAULT_DATA_DIR = Path.home() / ".aegis"
+DATA_DIR = Path(os.environ.get("AEGIS_DATA_DIR", DEFAULT_DATA_DIR))
 DB_PATH = DATA_DIR / "database" / "aegis.db"
 
 # Dashboard / API bind address — localhost only (never public). See PRD §9.

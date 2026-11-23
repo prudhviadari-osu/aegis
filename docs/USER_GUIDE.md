@@ -120,6 +120,14 @@ Aegis remembers facts across sessions.
 
 ---
 
+## 5b. Where your data lives (persistence)
+
+Your jobs, memory, tasks, and settings are stored in a SQLite database at
+**`~/.aegis/database/aegis.db`** — in your home folder, *outside* the repo. This means
+your data **persists** across app restarts, re-cloning the repo, and deleting the
+repo's folder. Back it up by copying that one file. To start fresh, delete `~/.aegis`.
+(Override the location with `AEGIS_DATA_DIR=/some/path`.)
+
 ## 6. Keeping your battery healthy
 
 Aegis is tuned to run cool and defer work when your Mac is warm or on battery — but

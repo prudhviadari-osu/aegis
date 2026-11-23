@@ -8,7 +8,8 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 
-# Local runtime data — never commit (DB, browser profiles, logs, secrets, docs)
+# Local runtime data — never commit. (The real persistent store now lives in
+# ~/.aegis, outside the repo; this covers any legacy in-repo data/ too.)
 data/
 *.db
 *.db-wal

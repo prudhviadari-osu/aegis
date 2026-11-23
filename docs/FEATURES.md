@@ -132,7 +132,7 @@ Chat with the local model from Home. Remembered facts (3.7) are injected so it
 backend/app/
   main.py              app + routes + lifespan (worker start/stop, skill loading)
   config.py            local-first config (model, context, RAM, governor thresholds)
-  database.py          SQLite schema (task, job, memory, approval, skill, setting…)
+  database.py          SQLite schema; persistent store at ~/.aegis (outside repo)
   models/              adapter: base, ollama_backend, hermes_backend, fake_backend,
                        compat (memory-fit), prompting (temps + inference lock), selfcheck
   tasks/               repository (state machine), worker (gentle, resumable)
