@@ -13,7 +13,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import config
-from .api import chat, health, jobs, memory, resources, skills, sources, tasks
+from .api import (chat, health, jobs, memory, resources, settings as settings_api,
+                  skills, sources, tasks)
 from .database import init_db
 from .skills import load_builtin_skills
 from .tasks.worker import worker, requeue_interrupted
@@ -51,6 +52,7 @@ app.include_router(skills.router)
 app.include_router(memory.router)
 app.include_router(jobs.router)
 app.include_router(sources.router)
+app.include_router(settings_api.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -62,6 +64,16 @@ def dashboard() -> FileResponse:
 @app.get("/jobs")
 def jobs_page() -> FileResponse:
     return FileResponse(STATIC_DIR / "jobs.html")
+
+
+@app.get("/metrics")
+def metrics_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "metrics.html")
+
+
+@app.get("/settings")
+def settings_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "settings.html")
 
 
 def run() -> None:

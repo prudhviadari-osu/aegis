@@ -3,36 +3,51 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aegis · Jobs</title>
+  <title>Aegis · Job Search</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="stylesheet" href="/static/jobs.css">
 </head>
 <body>
-  <header>
-    <h1>Aegis</h1>
-    <nav><a href="/">Dashboard</a> · <span>Jobs</span></nav>
+  <nav class="topnav">
+    <span class="brand">Aegis</span>
+    <a href="/">Home</a>
+    <a href="/jobs" class="active">Job Search</a>
+    <a href="/metrics">Model Metrics</a>
+    <a href="/settings">Settings</a>
+    <span class="spacer"></span>
     <span id="tier-pill" class="pill pill-unknown">tier —</span>
-  </header>
+  </nav>
 
-  <main class="jobs-layout">
-    <section class="card job-table-card">
-      <div id="no-model-banner" class="warn-banner" style="display:none"></div>
-      <h2>Your matches <span id="job-count" class="muted"></span></h2>
-      <p class="muted">Ranked best-first. Review each (Apply / Skip); the next tier
-        unlocks when you've cleared this one.</p>
-      <table id="job-table">
-        <thead>
-          <tr><th>Fit</th><th>Ring</th><th>Role</th><th>Company</th><th>Status</th></tr>
-        </thead>
-        <tbody id="job-rows">
-          <tr><td colspan="5" class="muted">No scored jobs yet. Run a job_finder task on the dashboard.</td></tr>
-        </tbody>
-      </table>
+  <main class="wide">
+    <section class="card">
+      <h2>Run a search</h2>
+      <p class="sub">Comma-separated keywords (e.g. <em>intern, biomedical, clinical research</em>).
+        Leave blank to use your defaults. Results are US + student-level filtered,
+        then ranked (medicine first) if a model is running.</p>
+      <form id="search-form">
+        <input id="search-input" type="text" placeholder="intern, biomedical, clinical research" autocomplete="off">
+        <button type="submit" id="search-btn">Search</button>
+      </form>
+      <p id="search-msg" class="msg"></p>
     </section>
 
-    <section class="card job-detail-card" id="detail">
-      <p class="muted">Select a job to see the match breakdown.</p>
-    </section>
+    <div class="jobs-layout">
+      <section class="card job-table-card">
+        <div id="no-model-banner" class="warn-banner" style="display:none"></div>
+        <h2>Matches <span id="job-count" class="muted"></span></h2>
+        <p class="sub">Ranked best-first. Review each; the next tier unlocks when you clear this one.</p>
+        <table id="job-table">
+          <thead><tr><th>Fit</th><th>Ring</th><th>Role</th><th>Company</th><th>Status</th></tr></thead>
+          <tbody id="job-rows">
+            <tr><td colspan="5" class="muted">No jobs yet — run a search above.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card job-detail-card" id="detail">
+        <p class="muted">Select a job to see the match breakdown.</p>
+      </section>
+    </div>
   </main>
 
   <script src="/static/jobs.js"></script>

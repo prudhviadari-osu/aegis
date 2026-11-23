@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aegis · Model Metrics</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brand">Aegis</span>
+    <a href="/">Home</a>
+    <a href="/jobs">Job Search</a>
+    <a href="/metrics" class="active">Model Metrics</a>
+    <a href="/settings">Settings</a>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Model</h2>
+      <p class="sub">The local model and whether it fits your Mac.</p>
+      <div class="tiles">
+        <div class="tile"><div class="label">Backend</div><div class="value" id="m-backend">—</div></div>
+        <div class="tile"><div class="label">Model</div><div class="value" id="m-model">—</div></div>
+        <div class="tile"><div class="label">Status</div><div class="value" id="m-status">—</div></div>
+        <div class="tile"><div class="label">Est. memory</div><div class="value" id="m-mem">—</div></div>
+      </div>
+      <p id="m-notes" class="muted" style="margin-top:0.9rem"></p>
+    </section>
+
+    <section class="card">
+      <h2>Device safety</h2>
+      <p class="sub">Aegis backs off before it would stress your battery or overheat.</p>
+      <div class="tiles">
+        <div class="tile"><div class="label">Battery</div><div class="value" id="d-battery">—</div></div>
+        <div class="tile"><div class="label">Power</div><div class="value" id="d-power">—</div></div>
+        <div class="tile"><div class="label">Thermal</div><div class="value" id="d-thermal">—</div></div>
+        <div class="tile"><div class="label">Memory used</div><div class="value" id="d-mem">—</div></div>
+      </div>
+      <p id="d-safe" class="msg" style="margin-top:0.9rem"></p>
+    </section>
+  </main>
+
+  <script src="/static/metrics.js"></script>
+</body>
+</html>

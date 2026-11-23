@@ -88,5 +88,30 @@ async function review(id, status) {
   showDetail(id);         // refresh the detail with the new status
 }
 
+// Run-search form: kicks off a job_finder task; the table polls for results.
+document.getElementById("search-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const kw = document.getElementById("search-input").value.trim();
+  const msg = document.getElementById("search-msg");
+  const btn = document.getElementById("search-btn");
+  btn.disabled = true; msg.textContent = "Starting search…"; msg.className = "msg";
+  try {
+    const res = await fetch("/api/jobs/search", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keywords: kw }),
+    });
+    const data = await res.json();
+    msg.textContent = data.ok
+      ? "✓ " + data.message + " (This can take a few minutes — the table updates live.)"
+      : "⚠ could not start search";
+    msg.className = "msg " + (data.ok ? "msg-ok" : "msg-bad");
+  } catch {
+    msg.textContent = "⚠ Could not reach the backend.";
+    msg.className = "msg msg-bad";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 loadTable();
-setInterval(loadTable, 5000);   // live-update as background scoring finishes
+setInterval(loadTable, 4000);   // live-update as the search + scoring finish

@@ -79,7 +79,23 @@ def test_bad_review_status_rejected(client):
 def test_jobs_page_served(client):
     r = client.get("/jobs")
     assert r.status_code == 200
-    assert "Your matches" in r.text
+    assert "Matches" in r.text and "Run a search" in r.text
+
+
+def test_search_endpoint_creates_task(client):
+    r = client.post("/api/jobs/search", json={"keywords": "intern, biomedical"})
+    assert r.status_code == 200
+    assert r.json()["ok"] is True
+    # A job_finder task should now exist.
+    from backend.app.tasks import repository as repo
+    tasks = repo.list_tasks()
+    assert any(t["skill"] == "job_finder" for t in tasks)
+
+
+def test_subpages_served(client):
+    for path, marker in [("/metrics", "Device safety"), ("/settings", "Settings")]:
+        r = client.get(path)
+        assert r.status_code == 200 and marker in r.text
 
 
 if __name__ == "__main__":

@@ -37,6 +37,21 @@ def job_detail(job_id: int) -> dict:
     return job
 
 
+class SearchIn(BaseModel):
+    keywords: str = ""   # comma-separated; blank = jobify defaults
+
+
+@router.post("/api/jobs/search")
+def run_search(body: SearchIn) -> dict:
+    """Kick off a job search as a task (runs the job_finder skill in the worker).
+    Returns immediately with the task id; the page polls /api/jobs for results."""
+    from ..tasks import repository as repo
+    task = repo.create_task(
+        title="Job search", description=body.keywords.strip(), skill="job_finder")
+    return {"ok": True, "task_id": task["id"],
+            "message": "Search started — results will appear as they're found and analyzed."}
+
+
 class ReviewIn(BaseModel):
     status: str   # "applied" | "skipped"
 

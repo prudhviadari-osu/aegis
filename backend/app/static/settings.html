@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aegis · Settings</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <span class="brand">Aegis</span>
+    <a href="/">Home</a>
+    <a href="/jobs">Job Search</a>
+    <a href="/metrics">Model Metrics</a>
+    <a href="/settings" class="active">Settings</a>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Settings</h2>
+      <p class="sub">Model, memory, and API keys. Stored locally; secrets are never
+        shown back — a set key displays as “••• set”. Some changes (model, context)
+        take effect on the next launch.</p>
+      <div id="settings-fields"></div>
+      <p id="settings-msg" class="msg"></p>
+    </section>
+
+    <section class="card">
+      <h2>Keys — where to get them (all free)</h2>
+      <ul>
+        <li><strong>LangSearch</strong> (company discovery): langsearch.com/dashboard — no card.</li>
+        <li><strong>Adzuna</strong> (optional aggregator): developer.adzuna.com — note the free tier is small.</li>
+      </ul>
+      <p class="muted">The model runs via Ollama locally — no key needed.</p>
+    </section>
+  </main>
+
+  <script src="/static/settings.js"></script>
+</body>
+</html>

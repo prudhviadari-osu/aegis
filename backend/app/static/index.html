@@ -7,40 +7,31 @@
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <header>
-    <h1>Aegis</h1>
-    <nav><span>Dashboard</span> · <a href="/jobs">Jobs</a></nav>
+  <nav class="topnav">
+    <span class="brand">Aegis</span>
+    <a href="/" class="active">Home</a>
+    <a href="/jobs">Job Search</a>
+    <a href="/metrics">Model Metrics</a>
+    <a href="/settings">Settings</a>
+    <span class="spacer"></span>
     <span id="status-pill" class="pill pill-unknown">checking…</span>
-  </header>
+  </nav>
 
   <main>
     <section class="card">
-      <h2>Status</h2>
-      <dl id="status">
-        <dt>Backend</dt><dd id="s-backend">—</dd>
-        <dt>Model</dt><dd id="s-model">—</dd>
-        <dt>Model ready</dt><dd id="s-model-ready">—</dd>
-        <dt>Fits your Mac</dt><dd id="s-fits">—</dd>
-        <dt>Database</dt><dd id="s-db">—</dd>
-        <dt>Version</dt><dd id="s-version">—</dd>
-      </dl>
-      <p id="model-note" class="muted"></p>
-    </section>
-
-    <section class="card">
-      <h2>Device safety</h2>
+      <h2>Welcome back</h2>
+      <p class="sub">Your local assistant. Everything runs on this Mac.</p>
       <dl>
-        <dt>Battery</dt><dd id="r-battery">—</dd>
-        <dt>Power</dt><dd id="r-power">—</dd>
-        <dt>Thermal</dt><dd id="r-thermal">—</dd>
-        <dt>Memory</dt><dd id="r-mem">—</dd>
-        <dt>Safe to work</dt><dd id="r-safe">—</dd>
+        <dt>Model</dt><dd id="h-model">—</dd>
+        <dt>Device</dt><dd id="h-device">—</dd>
+        <dt>Jobs</dt><dd id="h-jobs">—</dd>
+        <dt>Tasks running</dt><dd id="h-tasks">—</dd>
       </dl>
-      <p id="r-reason" class="muted"></p>
     </section>
 
     <section class="card">
       <h2>Ask Aegis</h2>
+      <p class="sub">Chat with your local model.</p>
       <div id="chat-log" class="chat-log"></div>
       <form id="chat-form">
         <input id="chat-input" type="text" placeholder="Ask something…" autocomplete="off">
@@ -49,61 +40,17 @@
     </section>
 
     <section class="card">
-      <h2>New task</h2>
-      <form id="task-form">
-        <input id="task-title" type="text" placeholder="An objective to run, e.g. 'Find medtech internships'" autocomplete="off">
-        <button type="submit">Add</button>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Tasks</h2>
-      <ul id="task-list"><li class="muted">No tasks yet.</li></ul>
-    </section>
-
-    <section class="card">
-      <h2>Pending approvals</h2>
-      <ul id="approval-list"><li class="muted">Nothing waiting.</li></ul>
-    </section>
-
-    <section class="card">
-      <h2>Job matches</h2>
-      <p id="jobs-summary" class="muted">No jobs analyzed yet — run a job_finder task.</p>
-      <p><a href="/jobs">Open the Jobs review page →</a></p>
-    </section>
-
-    <section class="card">
-      <h2>Add a job source</h2>
-      <p class="muted">Paste a company's Workday careers URL (e.g.
-        https://medtronic.wd1.myworkdayjobs.com/MedtronicCareers). It's searched on the
-        next job_finder run.</p>
-      <form id="source-form">
-        <input id="source-input" type="text" placeholder="https://company.wd1.myworkdayjobs.com/Careers" autocomplete="off">
-        <button type="submit">Add</button>
-      </form>
-      <p id="source-msg" class="muted"></p>
-    </section>
-
-    <section class="card">
-      <h2>Skills</h2>
-      <ul id="skill-list"><li class="muted">Loading…</li></ul>
-    </section>
-
-    <section class="card">
-      <h2>Memory</h2>
-      <p class="muted">Facts Aegis remembers about you across sessions.</p>
-      <form id="memory-form">
-        <input id="memory-input" type="text" placeholder="Remember something, e.g. 'I prefer remote roles'" autocomplete="off">
-        <button type="submit">Remember</button>
-      </form>
-      <ul id="memory-list"><li class="muted">Nothing remembered yet.</li></ul>
+      <h2>Quick links</h2>
+      <p class="sub">Jump to a workspace.</p>
+      <ul>
+        <li><a href="/jobs">Job Search</a> — find, rank, and review job matches.</li>
+        <li><a href="/metrics">Model Metrics</a> — model, memory fit, device safety.</li>
+        <li><a href="/settings">Settings</a> — API keys, model, preferences.</li>
+      </ul>
     </section>
   </main>
 
-  <footer>
-    <span class="muted">Local only · 127.0.0.1 · nothing leaves your Mac</span>
-  </footer>
-
-  <script src="/static/app.js"></script>
+  <footer><span class="muted">Local only · 127.0.0.1 · nothing leaves your Mac</span></footer>
+  <script src="/static/home.js"></script>
 </body>
 </html>
