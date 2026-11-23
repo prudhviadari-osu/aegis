@@ -40,3 +40,9 @@ tbody tr.selected { background: #1d2433; }
 .fit-bar > span { display: block; height: 100%; background: var(--ok); }
 .warn-banner { background: rgba(224,179,65,0.12); border: 1px solid #e0b341; color: #e0b341;
   border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; }
+
+.search-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 700px) { .search-row { grid-template-columns: 1fr; } }
+.search-box { background: #0e1016; border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem; }
+.search-box label { margin-bottom: 0.5rem; }
+.search-box form { display: flex; gap: 0.5rem; }

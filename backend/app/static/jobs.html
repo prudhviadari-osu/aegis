@@ -20,15 +20,29 @@
 
   <main class="wide">
     <section class="card">
-      <h2>Run a search</h2>
-      <p class="sub">Comma-separated keywords (e.g. <em>intern, biomedical, clinical research</em>).
-        Leave blank to use your defaults. Results are US + student-level filtered,
-        then ranked (medicine first) if a model is running.</p>
-      <form id="search-form">
-        <input id="search-input" type="text" placeholder="intern, biomedical, clinical research" autocomplete="off">
-        <button type="submit" id="search-btn">Search</button>
-      </form>
+      <h2>Search</h2>
+      <p class="sub">Two ways to search. Comma-separated keywords
+        (e.g. <em>intern, biomedical, clinical research</em>).</p>
+
+      <div class="search-row">
+        <div class="search-box">
+          <label>🔎 Search my jobs <span class="muted">(instant — what's already found)</span></label>
+          <form id="local-form">
+            <input id="local-input" type="text" placeholder="filter saved jobs…" autocomplete="off">
+            <button type="submit" class="btn-secondary">Filter</button>
+          </form>
+        </div>
+
+        <div class="search-box">
+          <label>🌐 Find new jobs <span class="muted">(public — fetches + analyzes, slower)</span></label>
+          <form id="public-form">
+            <input id="public-input" type="text" placeholder="intern, biomedical, clinical…" autocomplete="off">
+            <button type="submit" id="public-btn">Find</button>
+          </form>
+        </div>
+      </div>
       <p id="search-msg" class="msg"></p>
+      <p id="progress" class="msg muted"></p>
     </section>
 
     <div class="jobs-layout">

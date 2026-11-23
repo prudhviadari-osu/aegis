@@ -29,6 +29,48 @@ def list_jobs(show_all: bool = False) -> dict:
             "no_model": any_unscored, "jobs": table}
 
 
+@router.get("/api/jobs/search-status")
+def search_status() -> dict:
+    """Progress of the most recent public search, so the page can show a live
+    indicator instead of looking frozen. (Declared before /{job_id} so the literal
+    path isn't captured by the int path param.)"""
+    from ..tasks import repository as repo
+    tasks = [t for t in repo.list_tasks() if t["skill"] == "job_finder"]
+    if not tasks:
+        return {"active": False, "status": "none", "detail": "", "result": ""}
+    latest = tasks[0]
+    detail = ""
+    for ev in reversed(repo.events(latest["id"])):
+        if ev["type"] == "checkpoint":
+            detail = ev["details"]
+            break
+    active = latest["status"] in ("queued", "running", "paused")
+    return {"active": active, "status": latest["status"],
+            "detail": detail, "result": latest.get("result") or ""}
+
+
+@router.get("/api/jobs/search-local")
+def search_local(q: str = "") -> dict:
+    """LOCAL search: filter jobs already in the DB by keyword. Instant, no network,
+    no model. Searches title/company/location/description."""
+    from ..jobs import all_jobs
+    terms = [t.strip().lower() for t in q.replace(",", " ").split() if t.strip()]
+    rows = all_jobs()
+    if terms:
+        def hit(j):
+            hay = f"{j.get('title','')} {j.get('company','')} {j.get('location','')} {j.get('description','')}".lower()
+            return any(t in hay for t in terms)
+        rows = [j for j in rows if hit(j)]
+    table = [{
+        "id": j["id"], "company": j["company"], "title": j["title"],
+        "location": j["location"], "ring": j["ring"], "fit_score": j["fit_score"],
+        "path_score": j["path_score"], "rank": j["rank"], "tier": j["tier"],
+        "review_status": j["review_status"], "scored": j["scored"],
+    } for j in rows]
+    return {"count": len(table), "query": q, "jobs": table,
+            "no_model": any(not j["scored"] for j in rows)}
+
+
 @router.get("/api/jobs/{job_id}")
 def job_detail(job_id: int) -> dict:
     job = get_job(job_id)
@@ -43,13 +85,21 @@ class SearchIn(BaseModel):
 
 @router.post("/api/jobs/search")
 def run_search(body: SearchIn) -> dict:
-    """Kick off a job search as a task (runs the job_finder skill in the worker).
-    Returns immediately with the task id; the page polls /api/jobs for results."""
+    """PUBLIC search: kick off a background job_finder task that fetches NEW jobs
+    from the web sources (model-expands the keywords first if a model is running),
+    analyzes them, and stores them. Returns immediately; poll /api/jobs/search-status."""
     from ..tasks import repository as repo
+    # Don't stack duplicate searches — if one's already running, say so.
+    active = [t for t in repo.list_tasks() if t["skill"] == "job_finder"
+              and t["status"] in ("queued", "running", "paused")]
+    if active:
+        return {"ok": True, "task_id": active[0]["id"], "already_running": True,
+                "message": "A job search is already running — results will appear as they finish."}
     task = repo.create_task(
         title="Job search", description=body.keywords.strip(), skill="job_finder")
-    return {"ok": True, "task_id": task["id"],
-            "message": "Search started — results will appear as they're found and analyzed."}
+    return {"ok": True, "task_id": task["id"], "already_running": False,
+            "message": "Search started. Fetching + analyzing jobs — this can take a few "
+                       "minutes. The table updates live as they come in."}
 
 
 class ReviewIn(BaseModel):

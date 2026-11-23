@@ -53,8 +53,22 @@ def _handler(task: dict, checkpoint) -> str:
 
     gather, jf_config = _import_jobify()
 
+    from .. import config
+    from ..models import get_adapter
+
     desc = (task.get("description") or "").strip()
     keywords = [k.strip() for k in desc.split(",") if k.strip()] or jf_config.KEYWORDS
+
+    # Model-shape the search: if a real model is running, expand the keywords into
+    # related medtech terms before fetching (the "interactive search" idea). This
+    # is the public-search-uses-the-model step. Falls back to raw keywords.
+    adapter = get_adapter(config)
+    if adapter.available() and getattr(config, "MODEL_BACKEND", "ollama") != "fake":
+        try:
+            keywords = _expand_keywords(adapter, keywords)
+            checkpoint({"step": "expanded_keywords", "keywords": keywords})
+        except Exception:  # noqa: BLE001 - expansion is best-effort; never block the search
+            pass
 
     checkpoint({"step": "searching", "keywords": keywords})
     found = gather(keywords)
@@ -106,6 +120,31 @@ def _handler(task: dict, checkpoint) -> str:
                 "get fit ranking, have/missing, and drafts.")
     return (f"Found {len(found)} jobs → {len(kept)} passed filters → analyzed "
             f"{analyzed}. Open the Jobs page to review your ranked matches.")
+
+
+def _expand_keywords(adapter, keywords: list[str]) -> list[str]:
+    """Ask the model to expand seed keywords into related medtech search terms,
+    weighted toward medicine + medical-AI (the user's priority). Returns the seeds
+    plus the additions, deduped, capped."""
+    from ..models.base import extract_json
+    from ..models.prompting import inference_lock, temperature_for
+    system = ("Expand a pre-med CS student's job-search keywords into related terms, "
+              "weighted toward medicine, clinical, and medical-AI/biomedical roles, "
+              "with a few general ML/data terms. Return ONLY JSON: "
+              '{"keywords": ["term", ...]} with at most 12 short terms.')
+    user = f"SEED KEYWORDS: {', '.join(keywords)}\nExpand them. JSON only."
+    with inference_lock():
+        raw = adapter.chat([{"role": "system", "content": system},
+                            {"role": "user", "content": user}],
+                           temperature=temperature_for("analytical"))
+    data = extract_json(raw)
+    extra = data.get("keywords", []) if isinstance(data, dict) else []
+    out, seen = [], set()
+    for t in list(keywords) + [str(x) for x in extra]:
+        k = t.strip().lower()
+        if k and k not in seen:
+            seen.add(k); out.append(t.strip())
+    return out[:15]
 
 
 def _load_profile(config) -> dict:

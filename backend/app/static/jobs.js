@@ -7,9 +7,19 @@ function ringBadge(ring) {
 }
 
 async function loadTable() {
-  const data = await (await fetch("/api/jobs")).json();
-  document.getElementById("tier-pill").textContent = "tier " + data.current_tier;
-  document.getElementById("tier-pill").className = "pill pill-ok";
+  // If a local filter is active, search the DB directly; else show the tiered view.
+  const url = localQuery
+    ? `/api/jobs/search-local?q=${encodeURIComponent(localQuery)}`
+    : "/api/jobs";
+  const data = await (await fetch(url)).json();
+  const tierPill = document.getElementById("tier-pill");
+  if (localQuery) {
+    tierPill.textContent = `filter: "${localQuery}"`;
+    tierPill.className = "pill pill-warn";
+  } else {
+    tierPill.textContent = "tier " + data.current_tier;
+    tierPill.className = "pill pill-ok";
+  }
   document.getElementById("job-count").textContent = `(${data.count} shown)`;
 
   // Warning banner when jobs aren't model-analyzed.
@@ -25,7 +35,9 @@ async function loadTable() {
 
   const body = document.getElementById("job-rows");
   if (!data.jobs.length) {
-    body.innerHTML = '<tr><td colspan="5" class="muted">No jobs yet. Run a job_finder task on the dashboard.</td></tr>';
+    body.innerHTML = localQuery
+      ? '<tr><td colspan="5" class="muted">No saved jobs match that filter.</td></tr>'
+      : '<tr><td colspan="5" class="muted">No jobs yet. Use “Find new jobs” above to fetch some.</td></tr>';
     return;
   }
   body.innerHTML = "";
@@ -88,12 +100,20 @@ async function review(id, status) {
   showDetail(id);         // refresh the detail with the new status
 }
 
-// Run-search form: kicks off a job_finder task; the table polls for results.
-document.getElementById("search-form").addEventListener("submit", async (e) => {
+// LOCAL search: instant filter over jobs already in the DB (no network/model).
+let localQuery = "";
+document.getElementById("local-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const kw = document.getElementById("search-input").value.trim();
+  localQuery = document.getElementById("local-input").value.trim();
+  await loadTable();
+});
+
+// PUBLIC search: kicks off the background fetch+analyze task.
+document.getElementById("public-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const kw = document.getElementById("public-input").value.trim();
   const msg = document.getElementById("search-msg");
-  const btn = document.getElementById("search-btn");
+  const btn = document.getElementById("public-btn");
   btn.disabled = true; msg.textContent = "Starting search…"; msg.className = "msg";
   try {
     const res = await fetch("/api/jobs/search", {
@@ -101,17 +121,29 @@ document.getElementById("search-form").addEventListener("submit", async (e) => {
       body: JSON.stringify({ keywords: kw }),
     });
     const data = await res.json();
-    msg.textContent = data.ok
-      ? "✓ " + data.message + " (This can take a few minutes — the table updates live.)"
-      : "⚠ could not start search";
+    msg.textContent = (data.ok ? "✓ " : "⚠ ") + data.message;
     msg.className = "msg " + (data.ok ? "msg-ok" : "msg-bad");
   } catch {
-    msg.textContent = "⚠ Could not reach the backend.";
-    msg.className = "msg msg-bad";
-  } finally {
-    btn.disabled = false;
-  }
+    msg.textContent = "⚠ Could not reach the backend."; msg.className = "msg msg-bad";
+  } finally { btn.disabled = false; }
 });
 
+// Progress line for a running public search.
+async function pollProgress() {
+  try {
+    const s = await (await fetch("/api/jobs/search-status")).json();
+    const el = document.getElementById("progress");
+    if (s.active) {
+      el.textContent = `⏳ Search ${s.status}… ${s.detail ? "(" + s.detail + ")" : ""}`;
+    } else if (s.status !== "none" && s.result) {
+      el.textContent = s.result;
+    } else {
+      el.textContent = "";
+    }
+  } catch {}
+}
+
 loadTable();
-setInterval(loadTable, 4000);   // live-update as the search + scoring finish
+pollProgress();
+setInterval(loadTable, 4000);     // live-update as results come in
+setInterval(pollProgress, 3000);  // live search progress

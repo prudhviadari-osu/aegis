@@ -79,7 +79,25 @@ def test_bad_review_status_rejected(client):
 def test_jobs_page_served(client):
     r = client.get("/jobs")
     assert r.status_code == 200
-    assert "Matches" in r.text and "Run a search" in r.text
+    # Two search modes present on the page.
+    assert "Search my jobs" in r.text and "Find new jobs" in r.text
+
+
+def test_local_search_filters_db(client):
+    _seed(3)                                   # 3 jobs titled "Role 0/1/2" at MedCo
+    # Local search for a term that matches.
+    r = client.get("/api/jobs/search-local?q=Role")
+    assert r.json()["count"] == 3
+    # A term that matches nothing.
+    r2 = client.get("/api/jobs/search-local?q=nonexistentterm")
+    assert r2.json()["count"] == 0
+
+
+def test_search_status_not_shadowed(client):
+    # The literal path must resolve to the status endpoint, not /{job_id} (422).
+    r = client.get("/api/jobs/search-status")
+    assert r.status_code == 200
+    assert "active" in r.json()
 
 
 def test_search_endpoint_creates_task(client):
