@@ -8,7 +8,18 @@ Tuned to run cool and spare your battery.
 **Status:** Milestones 1–6 + the Jobs review page + a 4-page dashboard — working, 77
 tests passing. Hermes "smart mode" is optional.
 
+## The system (three repos)
+Aegis is the **brain + environment**. It runs **skills** (domain experts) and uses
+shared capabilities:
+- **aegis** (this repo) — orchestration, dashboard, tasks, memory, model, governor.
+- **jobify** — the jobs skill (search / rank / application prep). Imported by Aegis.
+- **aegis-browser** — a general headless Playwright wrapper + the fill-and-review
+  extension. Used by Aegis (research) and jobify (reading application pages).
+
+Full map: **[docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md)**.
+
 ## Documentation
+- **[docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md)** — how the three repos fit together.
 - **[docs/FEATURES.md](docs/FEATURES.md)** — living reference: what every feature is,
   the end-to-end workflow, architecture, and milestone status. *(Kept up to date as
   features change.)*
