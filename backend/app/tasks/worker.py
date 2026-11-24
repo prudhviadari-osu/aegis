@@ -97,10 +97,17 @@ class Worker:
         try:
             result = handler(task, lambda cp: repo.save_checkpoint(tid, cp))
             repo.set_result(tid, result)
-            repo.transition(tid, "completed", "handler finished")
+            # The user may have paused/cancelled this task WHILE it ran. Only mark it
+            # completed if it's still 'running'; otherwise respect their change
+            # (use transition_safe so a now-illegal move never crashes the worker).
+            current = (repo.get_task(tid) or {}).get("status")
+            if current == "running":
+                repo.transition(tid, "completed", "handler finished")
+            else:
+                repo.transition_safe(tid, "completed", f"finished (was {current})")
         except Exception as exc:   # noqa: BLE001 - record any failure, don't crash the worker
             repo.set_error(tid, str(exc))
-            repo.transition(tid, "failed", str(exc))
+            repo.transition_safe(tid, "failed", str(exc))
         finally:
             self.current_task_id = None
             self.current_task_title = ""

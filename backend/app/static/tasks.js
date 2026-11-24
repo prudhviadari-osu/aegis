@@ -24,7 +24,12 @@ async function refresh() {
     run.innerHTML = `
       <p><strong>#${r.task_id} ${r.title}</strong></p>
       <p class="muted">step: ${r.step || "working"} · running ${fmtDuration(r.elapsed_seconds)} · ${eta}</p>
-      ${progress}`;
+      ${progress}
+      <div style="margin-top:.6rem">
+        <button class="btn-mini btn-secondary" onclick="control(${r.task_id}, 'pause')">⏸ Pause</button>
+        <button class="btn-mini btn-secondary" onclick="control(${r.task_id}, 'cancel')">✕ Cancel</button>
+      </div>
+      <p class="muted" style="font-size:.8rem;margin-top:.4rem">Pausing takes effect after the current step (a model call can't be interrupted mid-way).</p>`;
   } else {
     run.innerHTML = '<p class="muted">Nothing running — the worker is idle.</p>';
   }
@@ -38,8 +43,16 @@ async function refresh() {
     q.innerHTML = "";
     data.queued.forEach((t, i) => {
       const li = document.createElement("li");
+      // Controls depend on state: a paused task can resume; a queued one can pause.
+      const controls = t.status === "paused"
+        ? `<button class="btn-mini" onclick="control(${t.task_id}, 'resume')">▶ Resume</button>`
+        : `<button class="btn-mini btn-secondary" onclick="control(${t.task_id}, 'pause')">⏸ Pause</button>`;
       li.innerHTML = `<strong>#${t.task_id}</strong> ${t.title}
-        <span class="muted">[${t.status}]${i === 0 ? " · next up" : ""}</span>`;
+        <span class="muted">[${t.status}]${i === 0 ? " · next up" : ""}</span> `;
+      const span = document.createElement("span");
+      span.innerHTML = controls +
+        ` <button class="btn-mini btn-secondary" onclick="control(${t.task_id}, 'cancel')">✕ Cancel</button>`;
+      li.appendChild(span);
       q.appendChild(li);
     });
   }
@@ -59,6 +72,23 @@ async function refresh() {
       rec.appendChild(li);
     }
   }
+}
+
+// Pause / resume / cancel a task via the control endpoint, then refresh.
+async function control(taskId, action) {
+  try {
+    const res = await fetch(`/api/tasks/${taskId}/control`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(`Couldn't ${action} task #${taskId}: ${err.detail || res.status}`);
+    }
+  } catch {
+    alert("Couldn't reach the backend.");
+  }
+  refresh();
 }
 
 refresh();

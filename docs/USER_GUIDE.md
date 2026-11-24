@@ -96,6 +96,11 @@ The Tasks page is your live tracker:
   marks what runs next.
 - **Recent** — finished tasks with their outcome.
 
+**Controls:** each task has buttons — **⏸ Pause**, **▶ Resume** (on a paused task),
+and **✕ Cancel**. Pausing a *running* task takes effect after its current step (a
+model call can't be cut off mid-way); it then stays paused until you Resume it, which
+puts it back in the queue. Cancelled tasks stop for good.
+
 This is where you watch a long job search progress, and confirm a task is moving (not
 stuck). A search that's slow is normal — each job is a model call; the ETA tells you
 roughly how long.
