@@ -9,8 +9,15 @@ async function refresh() {
 
   try {
     const m = await (await fetch("/api/model")).json();
-    document.getElementById("h-model").textContent =
-      m.available ? `${m.model} — ready` : `${m.model} — not running`;
+    const el = document.getElementById("h-model");
+    if (m.available) {
+      window._modelDown = 0;
+      el.textContent = `${m.model} — ready`;
+    } else {
+      window._modelDown = (window._modelDown || 0) + 1;
+      el.textContent = window._modelDown >= 2
+        ? `${m.model} — not running` : `${m.model} — busy…`;
+    }
   } catch {}
 
   try {

@@ -167,5 +167,6 @@ limits the charge; together they spare the battery.
 | Model "not running" / "not online" | 1) `curl http://localhost:11434/api/tags` — if it errors, open the Ollama app. 2) `ollama list` — launch Aegis with `AEGIS_OLLAMA_MODEL=<exact name shown>` (e.g. `qwen3:8b`). 3) Don't set `AEGIS_TARGET_CONTEXT` higher than the model's real context_length (Qwen3 8B is ~40960, so use 32000) — Aegis now caps it, but keep it under to be safe. |
 | Mac struggles / fans spin | lower `AEGIS_TARGET_CONTEXT` (e.g. 8000), ensure 8-bit KV cache on, close Chrome tabs, or use `qwen3:4b` |
 | "no model used" banner on Jobs | expected with no model — raw matches, not analyzed; start Ollama and re-run |
+| Model status flickers ready ↔ not running | usually a slow health check while the Mac is busy (mid-inference), not a real drop. Aegis now retries and shows "busy…" before "not running". If it only flickers under load, it's fine. |
 
 Read the terminal where Aegis runs — real errors print there (last line names the cause).

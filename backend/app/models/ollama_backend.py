@@ -26,11 +26,17 @@ class OllamaBackend(ModelAdapter):
         self.think = think                # chain-of-thought for hard tasks
 
     def available(self) -> bool:
-        try:
-            r = requests.get(f"{self.host}/api/tags", timeout=4)
-            return r.status_code == 200
-        except requests.RequestException:
-            return False
+        # Retry briefly: when the Mac is busy (e.g. mid-inference), Ollama can be
+        # slow to answer /api/tags. A single slow response shouldn't read as
+        # "offline" — try twice with a longer timeout before giving up.
+        for attempt in range(2):
+            try:
+                r = requests.get(f"{self.host}/api/tags", timeout=10)
+                if r.status_code == 200:
+                    return True
+            except requests.RequestException:
+                pass
+        return False
 
     def info(self) -> ModelInfo:
         if not self.available():
