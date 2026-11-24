@@ -147,3 +147,20 @@ def all_jobs() -> list[dict]:
         return [_row(r) for r in rows]
     finally:
         conn.close()
+
+
+def clear_jobs(only_status: str | None = None) -> int:
+    """Delete stored jobs. With only_status, delete just those with that review
+    status (e.g. keep 'applied' ones, clear the rest). Returns count deleted.
+    Used to wipe stale results (e.g. a DB full of international jobs from before a
+    filter fix) so a fresh search repopulates cleanly."""
+    conn = connect()
+    try:
+        if only_status:
+            cur = conn.execute("DELETE FROM job WHERE review_status=?", (only_status,))
+        else:
+            cur = conn.execute("DELETE FROM job")
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()

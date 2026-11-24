@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..jobs import visible_jobs, get_job, set_review_status, current_tier, all_jobs
+from ..jobs.repository import clear_jobs
 
 router = APIRouter()
 
@@ -47,6 +48,17 @@ def search_status() -> dict:
     active = latest["status"] in ("queued", "running", "paused")
     return {"active": active, "status": latest["status"],
             "detail": detail, "result": latest.get("result") or ""}
+
+
+@router.post("/api/jobs/clear")
+def clear(keep_applied: bool = True) -> dict:
+    """Wipe stored jobs so a fresh (correctly-filtered) search repopulates clean.
+    By default keeps jobs you've marked 'applied' (don't lose those)."""
+    if keep_applied:
+        removed = clear_jobs("new") + clear_jobs("skipped")
+    else:
+        removed = clear_jobs()
+    return {"ok": True, "removed": removed, "kept_applied": keep_applied}
 
 
 @router.get("/api/jobs/search-local")

@@ -143,6 +143,22 @@ async function pollProgress() {
   } catch {}
 }
 
+async function clearJobs() {
+  if (!confirm("Clear stored jobs? (Jobs you've marked 'applied' are kept.)")) return;
+  try {
+    const res = await fetch("/api/jobs/clear", { method: "POST" });
+    const data = await res.json();
+    const msg = document.getElementById("search-msg");
+    msg.textContent = `✓ Cleared ${data.removed} jobs. Run a fresh search to repopulate.`;
+    msg.className = "msg msg-ok";
+    localQuery = "";
+    await loadTable();
+  } catch {
+    const msg = document.getElementById("search-msg");
+    msg.textContent = "⚠ Could not clear jobs."; msg.className = "msg msg-bad";
+  }
+}
+
 loadTable();
 pollProgress();
 setInterval(loadTable, 4000);     // live-update as results come in

@@ -100,6 +100,20 @@ def test_search_status_not_shadowed(client):
     assert "active" in r.json()
 
 
+def test_clear_jobs_keeps_applied(client):
+    from backend.app.jobs import upsert_job, set_review_status
+    a = upsert_job({"job_key": "a", "company": "X", "title": "t", "location": "l",
+                    "url": "u", "description": "d", "source": "s"})
+    upsert_job({"job_key": "b", "company": "X", "title": "t2", "location": "l",
+                "url": "u", "description": "d", "source": "s"})
+    set_review_status(a["id"], "applied")           # mark one applied
+    r = client.post("/api/jobs/clear")               # default: keep applied
+    assert r.json()["removed"] == 1                  # only the non-applied one
+    from backend.app.jobs import all_jobs
+    remaining = all_jobs()
+    assert len(remaining) == 1 and remaining[0]["review_status"] == "applied"
+
+
 def test_search_endpoint_creates_task(client):
     r = client.post("/api/jobs/search", json={"keywords": "intern, biomedical"})
     assert r.status_code == 200
